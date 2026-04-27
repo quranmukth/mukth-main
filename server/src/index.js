@@ -40,7 +40,7 @@ const bootstrap = async () => {
   initCronJobs();
 
   // 7. Listen
-  httpServer.listen(PORT, () => {
+  httpServer.listen(PORT, '0.0.0.0', () => {
     logger.info(`🚀 Mukth server running on port ${PORT} [${process.env.NODE_ENV}]`);
     logger.info(`🔌 Socket.io ready`);
   });

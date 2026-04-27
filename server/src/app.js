@@ -35,7 +35,7 @@ import sessionRoutes      from './routes/sessions.js';
 
 // ── Allowed origins ───────────────────────────────────────────────────────────
 const getAllowedOrigins = () => {
-  const raw = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const raw = process.env.FRONTEND_URL || 'http://localhost:5173, https://mukth.netlify.app';
   // Support comma-separated list for multi-domain setups
   return raw.split(',').map((o) => o.trim());
 };

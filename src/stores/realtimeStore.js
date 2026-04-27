@@ -1,88 +1,83 @@
+/**
+ * @store realtimeStore
+ * @description Socket.io client replacing Supabase Realtime subscriptions.
+ * Same external interface — stores emit the same events, components don't change.
+ */
 import { create } from 'zustand';
-import { supabase } from '../lib/supabaseClient';
+import { io } from 'socket.io-client';
+import { useNotificationStore } from './notificationStore.js';
+import { useStudentStore } from './studentStore.js';
+import { useTeacherStore } from './teacherStore.js';
 
-import { useNotificationStore } from '../stores/notificationStore';
-import { useStudentStore } from '../stores/studentStore';
-import { useTeacherStore } from '../stores/teacherStore';
+const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
 
 export const useRealtimeStore = create((set, get) => ({
-  subscriptions: {},
+  socket: null,
 
   init: (userId, role) => {
+    const token = localStorage.getItem('mukth_access_token');
     const notify = useNotificationStore.getState();
     const studentStore = useStudentStore.getState();
     const teacherStore = useTeacherStore.getState();
 
-    // 1. Subscribe to new feedback (for students)
+    const socket = io(SOCKET_URL, {
+      auth: { token },
+      transports: ['websocket'],
+      reconnectionAttempts: 5,
+    });
+
+    socket.on('connect', () => {
+      console.debug('[Socket] Connected:', socket.id);
+    });
+
+    socket.on('connect_error', (err) => {
+      console.warn('[Socket] Connection error:', err.message);
+    });
+
+    // ── Student events ───────────────────────────────────────────────────────
     if (role === 'student') {
-      const feedbackSub = supabase
-        .channel('public:feedback')
-        .on('postgres_changes', { 
-          event: 'INSERT', 
-          schema: 'public', 
-          table: 'feedback' 
-        }, async (payload) => {
-          // Check if this feedback belongs to the student's recordings
-          const { data } = await supabase
-            .from('recordings')
-            .select('student_id')
-            .eq('id', payload.new.recording_id)
-            .single();
+      socket.on('feedback:new', ({ teacherName }) => {
+        notify.success('ملاحظات جديدة 📝', `قام ${teacherName} بمراجعة تسجيلك`);
+        studentStore.fetchDashboard(userId);
+        studentStore.fetchRecordings(userId);
+      });
 
-          if (data?.student_id === userId) {
-            notify.success('ملاحظات جديدة', 'لقد قام المعلم بمراجعة تسجيلك');
-            studentStore.fetchDashboard(userId);
-            studentStore.fetchRecordings(userId);
-          }
-        })
-        .subscribe();
-      
-      set((s) => ({ subscriptions: { ...s.subscriptions, feedback: feedbackSub } }));
+      socket.on('badge:unlocked', ({ badgeId }) => {
+        notify.success('🏆 شارة جديدة!', `حصلت على شارة جديدة!`);
+        studentStore.fetchDashboard(userId);
+      });
+
+      socket.on('session:started', () => {
+        notify.info('حلقة مباشرة! 🎙️', 'بدأت الحلقة الآن. انضم للمشاركة.');
+      });
     }
 
-    // 2. Subscribe to new recordings (for teachers)
+    // ── Teacher events ───────────────────────────────────────────────────────
     if (role === 'teacher') {
-      const recordingsSub = supabase
-        .channel('public:recordings')
-        .on('postgres_changes', { 
-          event: 'INSERT', 
-          schema: 'public', 
-          table: 'recordings' 
-        }, (payload) => {
-          notify.info('تسجيل جديد', 'تم استلام تسجيل جديد للمراجعة');
-          teacherStore.fetchDashboard(userId);
-        })
-        .subscribe();
+      socket.on('queue:new_recording', () => {
+        notify.info('تسجيل جديد 🎤', 'تم استلام تسجيل جديد للمراجعة');
+        teacherStore.fetchDashboard(userId);
+      });
 
-      set((s) => ({ subscriptions: { ...s.subscriptions, recordings: recordingsSub } }));
+      socket.on('queue:reviewed', ({ recordingId }) => {
+        // Another teacher reviewed it — remove from local queue
+        teacherStore.submitReview(recordingId, null);
+      });
     }
 
-    // 3. Subscribe to new registrations (for admins)
-    if (role === 'admin') {
-      const profilesSub = supabase
-        .channel('public:profiles')
-        .on('postgres_changes', { 
-          event: 'INSERT', 
-          schema: 'public', 
-          table: 'profiles' 
-        }, (payload) => {
-          notify.success(
-            'مستخدم جديد انضم!', 
-            `تم تسجيل ${payload.new.full_name} في المنصة.`
-          );
-          // If we are on the user management page, we could refresh the list
-          // But usually we'd use a dedicated adminStore for this.
-          // For now, the toast is enough.
-        })
-        .subscribe();
+    // ── Shared events ────────────────────────────────────────────────────────
+    socket.on('notification:new', ({ title, message, type }) => {
+      notify.info(title, message);
+    });
 
-      set((s) => ({ subscriptions: { ...s.subscriptions, profiles: profilesSub } }));
-    }
+    set({ socket });
   },
 
   cleanup: () => {
-    const { subscriptions } = get();
-    Object.values(subscriptions).forEach((sub) => sub.unsubscribe());
-    set({ subscriptions: {} });
-  }
+    const { socket } = get();
+    if (socket) {
+      socket.disconnect();
+      set({ socket: null });
+    }
+  },
 }));

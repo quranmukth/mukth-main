@@ -9,6 +9,7 @@ import { C } from '../components/shared/tokens';
 import IslamicPattern from '../components/shared/IslamicPattern';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
+import apiClient from '../lib/apiClient';
 
 const ROLES = [
   { value: 'student', icon: '📖' },
@@ -20,72 +21,85 @@ export default function RegisterPage() {
   const locale = useLocale();
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
   const navigate = useNavigate();
-  const login = useAuthStore((s) => s.login);
+  
   const notify = useNotificationStore();
-
-  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '', role: 'student' });
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
-
-  const handleChange = (e) => {
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
-    setErrors((er) => ({ ...er, [e.target.name]: null }));
-  };
-
   const user = useAuthStore((s) => s.user);
   const role = useAuthStore((s) => s.role);
   const register = useAuthStore((s) => s.register);
 
+  const [form, setForm] = useState({ 
+    name: '', email: '', phone: '', password: '', confirmPassword: '', role: 'student' 
+  });
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [serverDown, setServerDown] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
+  };
+
+  // ── Health Check — Vital for Egypt users with flaky DNS ─────────────────────
+  useEffect(() => {
+    const checkHealth = async () => {
+      try {
+        await apiClient.get('/health');
+        setServerDown(false);
+      } catch (err) {
+        setServerDown(true);
+        notify.error(
+          locale === 'ar' ? 'الخادم غير متصل' : 'Server Offline',
+          locale === 'ar' ? 'يرجى التأكد من تشغيل الخادم وتعديل DNS إلى 8.8.8.8' : 'Ensure backend is running and DNS is set to 8.8.8.8'
+        );
+      }
+    };
+    checkHealth();
+  }, [locale, notify]);
+
+  // Auto-redirect when user state is updated
   useEffect(() => {
     if (user && role) {
-      const path = role === 'admin' ? '/admin' : role === 'teacher' ? '/teacher' : '/student';
-      navigate(path);
+      const timer = setTimeout(() => {
+        const path = role === 'admin' ? '/admin' : role === 'teacher' ? '/teacher' : '/student';
+        navigate(path);
+      }, 1500);
+      return () => clearTimeout(timer);
     }
   }, [user, role, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (serverDown) {
+      notify.error(locale === 'ar' ? 'لا يمكن التسجيل' : 'Cannot Register', locale === 'ar' ? 'الخادم غير متاح حالياً.' : 'Server is unreachable.');
+      return;
+    }
+
     const v = validate(registerSchema, form);
     if (!v.success) { setErrors(v.errors); return; }
 
     setLoading(true);
     try {
-      // If role is teacher, we still register but might show a different message
-      const isTeacher = form.role === 'teacher';
-      
       await register(form.email, form.password, { 
-        full_name: form.name, 
-        phone_number: form.phone, 
-        role: form.role 
+        name: form.name, phone: form.phone, role: form.role 
       });
 
-      if (isTeacher) {
-        notify.success(
-          locale === 'ar' ? 'طلب انضمام!' : 'Request Sent!', 
-          locale === 'ar' 
-            ? 'تم إنشاء الحساب. سيقوم المدير بمراجعة طلبك كمعلم قريباً.' 
-            : 'Account created. The admin will review your teacher request shortly.'
-        );
-      } else {
-        notify.success(
-          locale === 'ar' ? 'مرحباً بك!' : 'Welcome!', 
-          locale === 'ar' ? 'تم إنشاء الحساب بنجاح' : 'Account created successfully'
-        );
-      }
-      
-      // Navigate to login after successful registration to avoid auto-login without role sync
-      setTimeout(() => navigate('/login'), 2000);
+      notify.success(
+        locale === 'ar' ? 'تم بنجاح!' : 'Success!', 
+        locale === 'ar' ? 'تم إنشاء الحساب' : 'Account created'
+      );
     } catch (err) {
       let msg = err.message;
-      if (msg.includes('User already registered')) {
-        msg = locale === 'ar' ? 'هذا البريد الإلكتروني مسجل بالفعل' : 'This email is already registered.';
+      if (msg.includes('already exists')) {
+        msg = locale === 'ar' ? 'البريد مسجل بالفعل' : 'Email already exists.';
+      } else if (msg.includes('Network Error')) {
+        msg = locale === 'ar' ? 'فشل الاتصال. تحقق من DNS.' : 'Connection failed. Check DNS settings.';
       }
-      notify.error(locale === 'ar' ? 'خطأ في التسجيل' : 'Registration Error', msg);
+      notify.error(locale === 'ar' ? 'خطأ' : 'Error', msg);
     } finally {
       setLoading(false);
     }
   };
-
 
   return (
     <div dir={dir} style={{
@@ -93,90 +107,63 @@ export default function RegisterPage() {
       background: `linear-gradient(155deg, ${C.g900} 0%, ${C.g850} 40%, ${C.g800} 100%)`,
       position: 'relative', overflow: 'hidden',
       padding: '2rem 1rem',
-      direction: dir,
     }}>
       <IslamicPattern opacity={0.05} />
 
-      <div style={{
-        margin: 'auto', width: '100%', maxWidth: '480px',
-        position: 'relative', zIndex: 10,
-      }}>
-        {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
-          <Link to="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.6rem' }}>
-            <div style={{
-              width: '44px', height: '44px', borderRadius: '12px',
-              background: `linear-gradient(135deg, ${C.gold}, ${C.goldD})`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: `0 4px 20px ${C.gold}40`,
-            }}>
-              <span style={{ fontSize: '1.3rem', color: C.g900, fontWeight: 900, fontFamily: locale === 'ar' ? "'IBM Plex Sans Arabic'" : "'Inter', sans-serif" }}>
-                {locale === 'ar' ? 'م' : 'M'}
-              </span>
-            </div>
-            <span style={{ fontSize: '1.7rem', fontWeight: 800, color: '#fff', fontFamily: locale === 'ar' ? "'IBM Plex Sans Arabic'" : "'Inter', sans-serif" }}>
-              {t.appName}
-            </span>
-          </Link>
-        </div>
+      <div style={{ margin: 'auto', width: '100%', maxWidth: '480px', position: 'relative', zIndex: 10 }}>
+        {/* Connection Warning */}
+        {serverDown && (
+          <div style={{
+            background: '#ff444420', border: '1px solid #ff4444', color: '#ff4444',
+            padding: '1rem', borderRadius: '1rem', marginBottom: '1rem', textAlign: 'center',
+            fontSize: '0.9rem', fontWeight: 600,
+          }}>
+            ⚠️ {locale === 'ar' ? 'الخادم لا يستجيب. تحقق من اتصالك و DNS.' : 'Server unreachable. Check your DNS (8.8.8.8).'}
+          </div>
+        )}
 
-        {/* Form */}
         <div style={{
           background: 'var(--bg-card)', borderRadius: '1.5rem',
           padding: '2.25rem 2rem', boxShadow: '0 32px 80px rgba(0,0,0,0.4)',
           border: `1px solid ${C.gold}18`,
-          textAlign: locale === 'ar' ? 'right' : 'left',
         }}>
-          <h1 style={{
-            fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)',
-            fontFamily: locale === 'ar' ? "'IBM Plex Sans Arabic', sans-serif" : "'Inter', sans-serif",
-            margin: '0 0 0.3rem', textAlign: 'center',
-          }}>
+          <h1 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)', textAlign: 'center' }}>
             {t.registerTitle}
           </h1>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textAlign: 'center', marginBottom: '1.5rem' }}>
-            {t.registerSub}
-          </p>
+          
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', marginTop: '1.5rem' }}>
+             {/* Role Selection */}
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              {ROLES.map((r) => (
+                <button
+                  key={r.value} type="button"
+                  onClick={() => setForm(f => ({...f, role: r.value}))}
+                  style={{
+                    flex: 1, padding: '0.7rem', borderRadius: '0.7rem',
+                    border: `2px solid ${form.role === r.value ? C.gold : 'transparent'}`,
+                    background: form.role === r.value ? `${C.gold}15` : 'rgba(255,255,255,0.05)',
+                    color: form.role === r.value ? C.gold : '#fff',
+                    cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s'
+                  }}
+                >
+                  {r.icon} {r.value}
+                </button>
+              ))}
+            </div>
 
-          {/* Role picker */}
-          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
-            {ROLES.map((r) => (
-              <button
-                key={r.value}
-                type="button"
-                onClick={() => { setForm((f) => ({ ...f, role: r.value })); setErrors((er) => ({ ...er, role: null })); }}
-                style={{
-                  flex: 1, padding: '0.7rem', borderRadius: '0.7rem',
-                  border: `2px solid ${form.role === r.value ? C.g600 : 'var(--border-secondary)'}`,
-                  background: form.role === r.value ? `${C.g800}10` : 'transparent',
-                  cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600,
-                  fontSize: '0.88rem', color: form.role === r.value ? C.g800 : 'var(--text-secondary)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-                  transition: 'all 0.2s',
-                }}
-              >
-                {r.icon} {r.value === 'student' ? (locale === 'ar' ? 'طالب' : 'Student') : (locale === 'ar' ? 'معلم' : 'Teacher')}
-              </button>
-            ))}
-          </div>
-
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
-            <Input label={t.fullName} name="name" placeholder={locale === 'ar' ? 'محمد أحمد' : 'Mohammed Ahmed'} value={form.name} onChange={handleChange} error={errors.name} required dir={dir} icon="👤" />
-            <Input label={t.email} name="email" type="email" placeholder="example@mukth.com" value={form.email} onChange={handleChange} error={errors.email} required dir={dir} icon="📧" />
-            <Input label={t.phone} name="phone" type="tel" placeholder="+20 1XX XXX XXXX" value={form.phone} onChange={handleChange} error={errors.phone} required dir={dir} icon="📱" />
-            <Input label={t.password} name="password" type="password" placeholder="••••••" value={form.password} onChange={handleChange} error={errors.password} required dir={dir} icon="🔒" />
-            <Input label={t.confirmPassword} name="confirmPassword" type="password" placeholder="••••••" value={form.confirmPassword} onChange={handleChange} error={errors.confirmPassword} required dir={dir} icon="🔒" />
-
-            <Button type="submit" variant="gold" fullWidth loading={loading} size="lg" style={{ marginTop: '0.5rem' }}>
-              {t.register} {locale === 'ar' ? '←' : '→'}
+            <Input label={t.fullName} name="name" value={form.name} onChange={handleChange} error={errors.name} required icon="👤" />
+            <Input label={t.email} name="email" type="email" value={form.email} onChange={handleChange} error={errors.email} required icon="📧" />
+            <Input label={t.phone} name="phone" value={form.phone} onChange={handleChange} error={errors.phone} required icon="📱" />
+            <Input label={t.password} name="password" type="password" value={form.password} onChange={handleChange} error={errors.password} required icon="🔒" />
+            <Input label={t.confirmPassword} name="confirmPassword" type="password" value={form.confirmPassword} onChange={handleChange} error={errors.confirmPassword} required icon="🔒" />
+            
+            <Button type="submit" variant="gold" fullWidth loading={loading} disabled={serverDown}>
+              {t.register}
             </Button>
           </form>
 
-          <p style={{ textAlign: 'center', margin: '1.25rem 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-            {t.hasAccount}{' '}
-            <Link to="/login" style={{ color: C.gold, fontWeight: 700, textDecoration: 'none' }}>
-              {t.login}
-            </Link>
+          <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+            {t.hasAccount} <Link to="/login" style={{ color: C.gold, fontWeight: 700 }}>{t.login}</Link>
           </p>
         </div>
       </div>

@@ -53,12 +53,14 @@ export default function LoginPage() {
       notify.success(locale === 'ar' ? 'مرحباً!' : 'Welcome!', locale === 'ar' ? 'تم تسجيل الدخول بنجاح' : 'Login successful');
     } catch (err) {
       let msg = err.message;
-      if (msg.includes('Email not confirmed')) {
-        msg = locale === 'ar' 
-          ? 'يرجى تأكيد بريدك الإلكتروني أولاً. تفقد صندوق الوارد.' 
-          : 'Please confirm your email first. Check your inbox.';
-      } else if (msg.includes('Invalid login credentials')) {
-        msg = locale === 'ar' ? 'بيانات الدخول غير صحيحة. تأكد من البريد وكلمة المرور.' : 'Invalid email or password. Please check your credentials.';
+      if (msg.includes('Network Error') || msg.includes('ECONNREFUSED') || msg.includes('ERR_NETWORK') || msg.includes('Failed to fetch')) {
+        msg = locale === 'ar'
+          ? 'تعذّر الاتصال بالخادم. يرجى المحاولة لاحقاً.'
+          : 'Cannot reach the server. Please try again later.';
+      } else if (msg.includes('Invalid email or password')) {
+        msg = locale === 'ar' ? 'بريد أو كلمة مرور غير صحيحة.' : 'Invalid email or password.';
+      } else if (msg.includes('suspended')) {
+        msg = locale === 'ar' ? 'تم تعليق هذا الحساب. تواصل مع الإدارة.' : 'Account suspended. Contact admin.';
       }
       notify.error(locale === 'ar' ? 'خطأ في الدخول' : 'Login Error', msg);
       setErrors({ email: msg });

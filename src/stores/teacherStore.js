@@ -1,9 +1,8 @@
-// ── Teacher Store — Review Queue, Feedback, Schedule ─────────────────────────
+// ── Teacher Store — unchanged API (now backed by REST) ────────────────────────
 import { create } from 'zustand';
-import { teacherApi } from '../lib/supabaseApi';
+import { teacherApi } from '../lib/api.js';
 
 export const useTeacherStore = create((set, get) => ({
-  // State
   reviewQueue: [],
   completedReviews: [],
   feedbackDrafts: {},
@@ -11,15 +10,11 @@ export const useTeacherStore = create((set, get) => ({
   students: [],
   loading: false,
 
-  // Actions
   fetchDashboard: async (teacherId) => {
     set({ loading: true });
     try {
       const data = await teacherApi.getDashboard(teacherId);
-      set({
-        reviewQueue: data.pendingRecordings,
-        schedule: data.todaySessions,
-      });
+      set({ reviewQueue: data.pendingRecordings, schedule: data.todaySessions });
     } finally {
       set({ loading: false });
     }
@@ -28,16 +23,14 @@ export const useTeacherStore = create((set, get) => ({
   submitReview: async (recordingId, feedback) => {
     const result = await teacherApi.submitReview(recordingId, feedback);
     set((s) => ({
-      reviewQueue: s.reviewQueue.filter((r) => r.id !== recordingId),
+      reviewQueue: s.reviewQueue.filter((r) => r._id !== recordingId),
       completedReviews: [result, ...s.completedReviews],
     }));
     return result;
   },
 
   saveFeedbackDraft: (recordingId, draft) =>
-    set((s) => ({
-      feedbackDrafts: { ...s.feedbackDrafts, [recordingId]: draft },
-    })),
+    set((s) => ({ feedbackDrafts: { ...s.feedbackDrafts, [recordingId]: draft } })),
 
   clearFeedbackDraft: (recordingId) =>
     set((s) => {
@@ -46,4 +39,3 @@ export const useTeacherStore = create((set, get) => ({
       return { feedbackDrafts: drafts };
     }),
 }));
-

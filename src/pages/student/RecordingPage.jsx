@@ -1,7 +1,8 @@
 // ── Recording Page — Audio recorder with visualization ───────────────────────
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuthStore } from '../../stores/authStore';
-import { supabase } from '../../lib/supabaseClient';
+import axios from 'axios';
+import { studentApi } from '../../lib/api';
 import { useT, useLocale } from '../../lib/i18n';
 import { useStudentStore } from '../../stores/studentStore';
 import { useAgentStore } from '../../stores/agentStore';
@@ -136,34 +137,34 @@ export default function RecordingPage() {
 
     setLoading(true);
     try {
+      // 1. Get presigned URL from our Node backend
+      const { uploadUrl, s3Key } = await studentApi.getUploadUrl('audio/webm');
+      
+      // 2. Fetch the recorded blob
       const response = await fetch(audioUrl);
       const blob = await response.blob();
       
-      const fileName = `${user.id}/${Date.now()}.webm`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('recordings')
-        .upload(fileName, blob);
+      // 3. Upload DIRECTLY to S3 using the presigned URL
+      await axios.put(uploadUrl, blob, {
+        headers: { 'Content-Type': 'audio/webm' }
+      });
 
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('recordings')
-        .getPublicUrl(fileName);
-
+      // 4. Submit metadata to our Node backend
       const surah = SURAHS.find((s) => String(s.id) === selectedSurah);
       const newRec = await addRecording({
-        student_id: user.id,
-        surah_id: parseInt(selectedSurah),
-        surah_name: surah?.name || '',
-        ayah_range: ayahRange || '1-10',
+        studentId: user._id,
+        halaqaId: user.halaqaId, // If the user is in a specific halaqa
+        surahId: parseInt(selectedSurah),
+        surahName: surah?.name || '',
+        ayahRange: ayahRange || '1-10',
         duration,
-        audio_url: publicUrl,
+        s3Key: s3Key, // Store the S3 reference
         status: 'pending'
       });
 
       // trigger AI Agent Pre-Analysis
       setAiLoading(true);
-      await analyzeRecitation(newRec.id, surah?.name || '', ayahRange || '1-10');
+      await analyzeRecitation(newRec._id, surah?.name || '', ayahRange || '1-10');
       setAiLoading(false);
 
       notify.success(locale === 'ar' ? 'تم!' : 'Done!', locale === 'ar' ? 'تم إرسال التسجيل وتحليله ذكياً' : 'Recording submitted and analyzed by AI');

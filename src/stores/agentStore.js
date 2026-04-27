@@ -1,42 +1,46 @@
+/**
+ * @store agentStore
+ * @description Store for AI-powered tajweed advice and study planning.
+ * Replaces Supabase Functions with REST API calls to our Node.js backend.
+ */
 import { create } from 'zustand';
-import { supabase } from '../lib/supabaseClient';
+import apiClient  from '../lib/apiClient.js';
 
 export const useAgentStore = create((set, get) => ({
   insights: null,
   isAnalyzing: false,
 
-  // AI Agent: Analyze Recitation (Pre-Teacher Review)
+  /**
+   * AI Agent: Analyze Recitation (Pre-Teacher Review)
+   * Calls the Node.js backend which coordinates the AI logic.
+   */
   analyzeRecitation: async (recordingId, surahName, ayahRange) => {
     set({ isAnalyzing: true });
     try {
-      // 1. Invoke AI Edge Function
-      const { data, error } = await supabase.functions.invoke('ai-tajweed-advisor', {
-        body: { recordingId, surahName, ayahRange }
+      const { data } = await apiClient.post(`/recordings/${recordingId}/analyze`, {
+        surahName,
+        ayahRange,
       });
 
-      if (error) throw error;
-
-      // 2. Update recording with AI insights
-      await supabase
-        .from('recordings')
-        .update({ 
-          ai_feedback: data.feedback,
-          ai_score: data.score 
-        })
-        .eq('id', recordingId);
-
-      set({ insights: data.feedback });
-      return data;
+      set({ insights: data.data.feedback });
+      return data.data;
+    } catch (err) {
+      console.error('AI Analysis failed:', err.message);
+      return null;
     } finally {
       set({ isAnalyzing: false });
     }
   },
 
-  // AI Agent: Get Personalized Study Plan
+  /**
+   * AI Agent: Get Personalized Study Plan
+   */
   getStudyAdvice: async (studentId) => {
-    const { data, error } = await supabase.functions.invoke('ai-study-planner', {
-      body: { studentId }
-    });
-    return data?.advice || 'واصل الحفظ والمراجعة يومياً لتحقيق أهدافك.';
-  }
+    try {
+      const { data } = await apiClient.get(`/stats/student/${studentId}/advice`);
+      return data.data.advice;
+    } catch (err) {
+      return 'واصل الحفظ والمراجعة يومياً لتحقيق أهدافك.';
+    }
+  },
 }));

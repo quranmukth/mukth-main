@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { useT, useLocale } from '../../lib/i18n';
-import { teacherApi } from '../../lib/supabaseApi';
+import { teacherApi } from '../../lib/api';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import Table from '../../components/ui/Table';

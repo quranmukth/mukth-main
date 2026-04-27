@@ -3,7 +3,6 @@ import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './stores/authStore';
 import { useRealtimeStore } from './stores/realtimeStore';
-import { supabase } from './lib/supabaseClient';
 import { useThemeStore } from './lib/theme';
 import { themeTokens } from './lib/theme';
 import ToastContainer from './components/notifications/ToastContainer';
@@ -44,8 +43,8 @@ function ProtectedRoute({ children, allowedRoles }) {
   const user = useAuthStore((s) => s.user);
   const profile = useAuthStore((s) => s.profile);
   const role = useAuthStore((s) => s.role);
-  const is_approved = useAuthStore((s) => s.is_approved);
   const loading = useAuthStore((s) => s.loading);
+  const logout = useAuthStore((s) => s.logout);
   const locale = window.localStorage.getItem('i18n-locale') || 'ar';
 
   if (loading) {
@@ -62,7 +61,7 @@ function ProtectedRoute({ children, allowedRoles }) {
   if (!user) return <Navigate to="/login" replace />;
 
   // Approval check for teachers
-  if (role === 'teacher' && is_approved === false) {
+  if (role === 'teacher' && user?.isApproved === false) {
     return (
       <div style={{ 
         display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', 
@@ -76,11 +75,11 @@ function ProtectedRoute({ children, allowedRoles }) {
           </h1>
           <p style={{ fontSize: '1.1rem', lineHeight: '1.6', color: 'rgba(255,255,255,0.8)', marginBottom: '2rem' }}>
             {locale === 'ar' 
-              ? `طلب انضمامك كمعلم قيد المراجعة حالياً من قبل الإدارة. سنتواصل معك على الرقم ${profile?.phone_number || ''} فور تفعيل الحساب.` 
-              : `Your teacher account is under review. Our team is verifying your application. We will contact you at ${profile?.phone_number || ''} once approved.`}
+              ? `طلب انضمامك كمعلم قيد المراجعة حالياً من قبل الإدارة. سنقوم بتفعيل حسابك قريباً.` 
+              : `Your teacher account is under review. Our team is verifying your application. We will activate your account once approved.`}
           </p>
           <button 
-            onClick={() => supabase.auth.signOut()}
+            onClick={() => logout()}
             style={{ padding: '0.8rem 2rem', borderRadius: '0.8rem', background: '#d4af37', color: '#011a12', fontWeight: 800, border: 'none', cursor: 'pointer' }}
           >
             {locale === 'ar' ? 'تسجيل الخروج' : 'Logout'}
@@ -99,37 +98,25 @@ function ProtectedRoute({ children, allowedRoles }) {
 
 export default function App() {
   const themeMode = useThemeStore((s) => s.mode);
-  const setSession = useAuthStore((s) => s.setSession);
+  const initAuth = useAuthStore((s) => s.init);
   const { init: initRealtime, cleanup: cleanupRealtime } = useRealtimeStore();
   const user = useAuthStore((s) => s.user);
   const role = useAuthStore((s) => s.role);
 
+  // Initialize Auth
   useEffect(() => {
-    // Initial session check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session);
-      if (event === 'SIGNED_OUT') {
-        cleanupRealtime();
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-      cleanupRealtime();
-    };
-  }, [setSession, cleanupRealtime]);
+    initAuth();
+    return () => cleanupRealtime();
+  }, [initAuth, cleanupRealtime]);
 
   // Handle Realtime Initialization when role is available
   useEffect(() => {
     if (user && role) {
-      initRealtime(user.id, role);
+      initRealtime(user._id, role);
+    } else {
+      cleanupRealtime();
     }
-  }, [user, role, initRealtime]);
+  }, [user, role, initRealtime, cleanupRealtime]);
 
 
   // Apply theme CSS variables on mount and change

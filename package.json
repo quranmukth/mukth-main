@@ -5,9 +5,12 @@
   "description": "منصة مُكث لحفظ القرآن الكريم",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
+    "dev:client": "vite",
+    "dev:server": "cd server && npm run dev",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "seed": "node server/src/scripts/seed.js"
   },
   "engines": {
     "node": "20.x"
@@ -19,6 +22,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.14.1",
+    "socket.io-client": "^4.8.3",
     "wavesurfer.js": "^7.12.6",
     "zod": "^4.3.6",
     "zustand": "^5.0.12"
@@ -28,6 +32,7 @@
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.19",
+    "concurrently": "^9.2.1",
     "postcss": "^8.4.41",
     "tailwindcss": "^3.4.10",
     "vite": "^5.4.21"

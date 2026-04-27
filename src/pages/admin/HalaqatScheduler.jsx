@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useT, useLocale } from '../../lib/i18n';
 import { useNotificationStore } from '../../stores/notificationStore';
-import { adminApi } from '../../lib/supabaseApi';
+import { adminApi } from '../../lib/api';
 import { C } from '../../components/shared/tokens';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';

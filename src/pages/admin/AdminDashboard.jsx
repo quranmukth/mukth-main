@@ -1,7 +1,7 @@
 // ── Admin Dashboard — System-wide analytics ─────────────────────────────────
 import { useState, useEffect } from 'react';
 import { useT, useLocale } from '../../lib/i18n';
-import { adminApi } from '../../lib/supabaseApi';
+import { adminApi } from '../../lib/api';
 import { useSessionStore } from '../../stores/sessionStore';
 import { C } from '../../components/shared/tokens';
 import Card, { StatCard } from '../../components/ui/Card';

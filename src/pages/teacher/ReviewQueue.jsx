@@ -4,7 +4,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { useTeacherStore } from '../../stores/teacherStore';
 import { useT, useLocale } from '../../lib/i18n';
 import { useNotificationStore } from '../../stores/notificationStore';
-import { teacherApi } from '../../lib/supabaseApi';
+import { teacherApi } from '../../lib/api';
 import { C } from '../../components/shared/tokens';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';

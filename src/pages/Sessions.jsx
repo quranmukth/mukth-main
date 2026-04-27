@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { useT, useLocale } from '../lib/i18n';
-import { studentApi, teacherApi } from '../lib/supabaseApi';
+import { studentApi, teacherApi } from '../lib/api';
 import { C } from '../components/shared/tokens';
 
 export default function Sessions() {

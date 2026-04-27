@@ -10,6 +10,7 @@
     "dev:server": "cd server && npm run dev",
     "build": "vite build",
     "start": "node server/src/index.js",
+    "postinstall": "cd server && npm install",
     "preview": "vite preview",
     "seed": "node server/src/scripts/seed.js"
   },
@@ -20,6 +21,7 @@
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.104.0",
     "axios": "^1.15.0",
+    "dotenv": "^17.4.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.14.1",

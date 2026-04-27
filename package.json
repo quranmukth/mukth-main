@@ -9,6 +9,7 @@
     "dev:client": "vite",
     "dev:server": "cd server && npm run dev",
     "build": "vite build",
+    "start": "node server/src/index.js",
     "preview": "vite preview",
     "seed": "node server/src/scripts/seed.js"
   },

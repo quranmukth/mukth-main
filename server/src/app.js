@@ -130,6 +130,11 @@ const createApp = () => {
     app.use(morgan(morganFormat, { stream: morganStream }));
   }
 
+  // ── Root ──────────────────────────────────────────────────────────────────
+  app.get('/', (req, res) => {
+    res.json({ success: true, message: 'Mukth API is running 🚀', version: '1.0.0' });
+  });
+
   // ── Routes ────────────────────────────────────────────────────────────────
   app.use('/api/health',        healthRoutes);
   app.use('/api/auth',          authLimiter, authRoutes);

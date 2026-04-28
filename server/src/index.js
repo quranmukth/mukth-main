@@ -3,7 +3,6 @@
  * @description Server entry point. Bootstraps DNS, DB, Socket.io, and HTTP server.
  */
 import 'dotenv/config';
-import { setServers } from 'node:dns';
 import http from 'http';
 import createApp from './app.js';
 import connectDB from './config/database.js';
@@ -11,17 +10,8 @@ import { initSocket } from './socket/index.js';
 import { initCronJobs } from './cron/index.js';
 import { setSocketIo } from './services/notificationService.js';
 import logger from './config/logger.js';
-
 const PORT = process.env.PORT || 5000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
-
-// ── Egypt DNS Bypass Hack ───────────────────────────────────────────────────
-// We use both System DNS override (8.8.8.8) and DNS-over-HTTPS (DoH).
-try {
-  setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
-} catch (e) {
-  logger.warn('Failed to set custom DNS servers. Falling back to system DNS.');
-}
 
 const bootstrap = async () => {
   logger.info(`🏗️  Starting Mukth Server in ${NODE_ENV} mode...`);

@@ -59,8 +59,10 @@ const createApp = () => {
   app.use(
     cors({
       origin: (origin, callback) => {
-        // Allow non-browser requests (Postman, server-to-server) in dev
-        if (!origin && process.env.NODE_ENV !== 'production') return callback(null, true);
+        // Allow all localhost origins in development
+        if (process.env.NODE_ENV !== 'production' && (!origin || origin.includes('localhost') || origin.includes('127.0.0.1'))) {
+          return callback(null, true);
+        }
         if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
         callback(new Error(`CORS: Origin "${origin}" not allowed`));
       },

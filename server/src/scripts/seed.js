@@ -11,8 +11,7 @@ import Halaqa   from '../models/Halaqa.js';
 import Badge    from '../models/Badge.js';
 import { BADGE_CATALOG } from '../services/gamificationService.js';
 
-// ── Egypt DNS Hack ───────────────────────────────────────────────────────────
-setServers(['8.8.8.8', '8.8.4.4']);
+import connectDB from '../config/database.js';
 
 const hash = (p) => bcrypt.hash(p, 12);
 
@@ -24,12 +23,26 @@ const seed = async () => {
   console.log('\n🌱  Starting Mukth seed script...');
 
   const uri = process.env.MONGODB_URI;
-  if (uri.startsWith('mongodb+srv://')) {
-    console.warn('⚠️  Warning: Using +srv. In Egypt, use standard mongodb:// if this fails.');
+  if (!uri) {
+    console.error('❌  Error: MONGODB_URI is not defined. Ensure server/.env exists.');
+    process.exit(1);
   }
 
   try {
-    await mongoose.connect(uri, { serverSelectionTimeoutMS: 5000 });
+    // Use the unified connection logic (with DoH bypass)
+    await connectDB();
+    
+    // Wait a moment for the connection to be established if it's async
+    if (mongoose.connection.readyState !== 1) {
+        console.log('⏳ Waiting for database connection...');
+        await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('DB Connection Timeout')), 15000);
+            mongoose.connection.once('connected', () => {
+                clearTimeout(timeout);
+                resolve();
+            });
+        });
+    }
     console.log('✅  Connected to MongoDB');
 
     // 1. Badges

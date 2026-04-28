@@ -6,6 +6,7 @@ import { useRealtimeStore } from './stores/realtimeStore';
 import { useThemeStore } from './lib/theme';
 import { themeTokens } from './lib/theme';
 import ToastContainer from './components/notifications/ToastContainer';
+import { Analytics } from "@vercel/analytics/react";
 
 // Pages
 import LandingPage from './pages/landing/LandingPage';
@@ -185,6 +186,9 @@ export default function App() {
 
       {/* Global toast notifications */}
       <ToastContainer />
+
+      {/* Vercel Analytics */}
+      <Analytics />
     </>
   );
 }

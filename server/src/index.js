@@ -4,12 +4,6 @@
  */
 import 'dotenv/config';
 import { setServers } from 'node:dns';
-
-// ── Egypt DNS Bypass Hack ───────────────────────────────────────────────────
-// We now use DNS-over-HTTPS (DoH) via server/src/config/dohResolver.js 
-// to bypass regional ISP filtering of MongoDB Atlas.
-
-
 import http from 'http';
 import createApp from './app.js';
 import connectDB from './config/database.js';
@@ -19,9 +13,20 @@ import { setSocketIo } from './services/notificationService.js';
 import logger from './config/logger.js';
 
 const PORT = process.env.PORT || 5000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
+
+// ── Egypt DNS Bypass Hack ───────────────────────────────────────────────────
+// We use both System DNS override (8.8.8.8) and DNS-over-HTTPS (DoH).
+try {
+  setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+} catch (e) {
+  logger.warn('Failed to set custom DNS servers. Falling back to system DNS.');
+}
 
 const bootstrap = async () => {
-  // 1. Attempt MongoDB connection (non-blocking)
+  logger.info(`🏗️  Starting Mukth Server in ${NODE_ENV} mode...`);
+
+  // 1. Attempt MongoDB connection
   connectDB();
 
   // 2. Create Express app
@@ -41,13 +46,14 @@ const bootstrap = async () => {
 
   // 7. Listen
   httpServer.listen(PORT, '0.0.0.0', () => {
-    logger.info(`🚀 Mukth server running on port ${PORT} [${process.env.NODE_ENV}]`);
+    logger.info(`🚀 Mukth server running on port ${PORT} [${NODE_ENV}]`);
     logger.info(`🔌 Socket.io ready`);
   });
 
   // Unhandled rejections
   process.on('unhandledRejection', (err) => {
     logger.error(`Unhandled rejection: ${err.message}`);
+    if (err.stack) logger.error(err.stack);
   });
 };
 

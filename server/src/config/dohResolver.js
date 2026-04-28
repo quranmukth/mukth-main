@@ -44,20 +44,14 @@ export function makeDohLookup() {
     // 1. Check if it's an Atlas hostname
     const isAtlas = hostname.endsWith('.mongodb.net');
 
-    // 2. Resolve 'mukth-db-shard' alias to 'ac-shobuu2-shard' if present
-    let targetHost = hostname;
-    if (hostname.includes('mukth-db-shard')) {
-      targetHost = hostname.replace('mukth-db-shard', 'ac-shobuu2-shard');
-    }
-
     if (isAtlas) {
-      if (_cache.has(targetHost)) {
-        return callback(null, _cache.get(targetHost), 4);
+      if (_cache.has(hostname)) {
+        return callback(null, _cache.get(hostname), 4);
       }
 
       try {
-        const ip = await fetchDoh(targetHost);
-        _cache.set(targetHost, ip);
+        const ip = await fetchDoh(hostname);
+        _cache.set(hostname, ip);
         logger.info(`🌐 DoH Bypassed: ${hostname} → ${ip}`);
         return callback(null, ip, 4);
       } catch (err) {

@@ -94,11 +94,8 @@ const connectDB = async () => {
 
   // Egypt-Specific Protocol Enforcement
   if (uri.startsWith('mongodb+srv://')) {
-    logger.error('❌ PROTOCOL ERROR: Detected "mongodb+srv://".');
-    logger.error('   SRV DNS lookups are blocked by Egyptian ISPs.');
-    logger.error('   FIX: In Atlas → Connect → Drivers, choose "Standard connection string" (mongodb://).');
-    isConnecting = false;
-    return;
+    logger.warn('⚠️  Protocol Warning: Detected "mongodb+srv://".');
+    logger.warn('   If connection fails, switch to "Standard connection string" (mongodb://) in Atlas.');
   }
 
   try {

@@ -10,10 +10,10 @@ export default function HeroSection({ onOpenModal }) {
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
 
   const STATS = [
-    { num: locale === 'ar' ? '+٥٠٠' : '+500', label: t.heroStatStudents },
-    { num: locale === 'ar' ? '+٢٠' : '+20',   label: t.heroStatTeachers },
-    { num: '4',    label: t.heroStatCurricula },
-    { num: '100%', label: t.heroStatAzhar },
+    { num: locale === 'ar' ? 'متميزون' : 'Elite',       label: t.heroStatStudents },
+    { num: locale === 'ar' ? 'مجازون' : 'Certified',   label: t.heroStatTeachers },
+    { num: locale === 'ar' ? 'متنوعة' : 'Diverse',     label: t.heroStatCurricula },
+    { num: locale === 'ar' ? 'معتمدون' : 'Accredited', label: t.heroStatAzhar },
   ];
 
   return (

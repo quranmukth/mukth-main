@@ -98,7 +98,7 @@ export default function TeachersSection() {
 
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem' }}>
                 <Stars count={Math.round(tea.rating)} />
-                <span style={{ fontSize: '0.72rem', color: C.muted }}>{tea.rating} ({tea.students} {t.studentSingular})</span>
+                <span style={{ fontSize: '0.72rem', color: C.muted }}>{tea.rating}</span>
               </div>
 
               <div style={{ width: '100%', height: '1px', background: C.borderL }} />

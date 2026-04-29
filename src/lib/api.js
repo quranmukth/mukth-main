@@ -132,3 +132,22 @@ export const adminApi = {
     return data.data;
   },
 };
+
+// ─── Leads API ──────────────────────────────────────────────────────────────
+
+export const leadsApi = {
+  createLead: async (leadData) => {
+    const { data } = await apiClient.post('/leads', leadData);
+    return data.data;
+  },
+
+  getLeads: async () => {
+    const { data } = await apiClient.get('/leads');
+    return data.data;
+  },
+
+  updateLeadStatus: async (id, status) => {
+    const { data } = await apiClient.patch(`/leads/${id}`, { status });
+    return data.data;
+  },
+};

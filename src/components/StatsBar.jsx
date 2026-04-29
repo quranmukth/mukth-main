@@ -7,11 +7,11 @@ export default function StatsBar() {
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
 
   const ITEMS = [
-    { icon:'📖', num: locale === 'ar' ? '+٥٠٠' : '+500',  label: t.statsStudents },
-    { icon:'🎓', num: locale === 'ar' ? '+٢٠' : '+20',   label: t.statsTeachers },
-    { icon:'⭐', num: locale === 'ar' ? '٤.٩' : '4.9',   label: t.statsRating },
-    { icon:'🌍', num: locale === 'ar' ? '+١٥' : '+15',   label: t.statsCountries },
-    { icon:'📅', num: locale === 'ar' ? '+٣' : '+3',    label: t.statsExperience },
+    { icon:'📖', num: locale === 'ar' ? 'متميزون' : 'Elite',       label: t.statsStudents },
+    { icon:'🎓', num: locale === 'ar' ? 'نخبة' : 'Distinguished', label: t.statsTeachers },
+    { icon:'⭐', num: locale === 'ar' ? 'ممتاز' : 'Excellent',     label: t.statsRating },
+    { icon:'🌍', num: locale === 'ar' ? 'عالمي' : 'Global',        label: t.statsCountries },
+    { icon:'📅', num: locale === 'ar' ? 'عريقة' : 'Legacy',        label: t.statsExperience },
   ];
 
   return (

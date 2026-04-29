@@ -1,28 +1,28 @@
 // ── Mukth Design Tokens ─────────────────────────────────────────────────────
 export const C = {
   // Emerald green family
-  g900:  '#011a12',
-  g850:  '#022c22',
-  g800:  '#064e3b',   // Primary brand
-  g700:  '#065f46',
-  g600:  '#047857',
-  g500:  '#059669',
-  g100:  '#d1fae5',
-  g50:   '#ecfdf5',
+  g900: '#011a12',
+  g850: '#022c22',
+  g800: '#064e3b',   // Primary brand
+  g700: '#065f46',
+  g600: '#047857',
+  g500: '#059669',
+  g100: '#d1fae5',
+  g50: '#ecfdf5',
 
   // Gold / Sand
-  gold:  '#d4af37',   // Secondary brand
+  gold: '#d4af37',   // Secondary brand
   goldD: '#b8941f',
   goldL: '#f0dc80',
-  gold50:'#fffbea',
+  gold50: '#fffbea',
 
   // Neutrals
   white: '#ffffff',
-  offW:  '#fafaf8',   // Page background
-  dark:  '#0c1810',
+  offW: '#fafaf8',   // Page background
+  dark: '#0c1810',
   muted: '#4a6358',
-  border:'#cde5d7',
-  borderL:'#e8f4ef',
+  border: '#cde5d7',
+  borderL: '#e8f4ef',
 
   // WhatsApp
   wa: '#25D366',
@@ -33,12 +33,12 @@ export const WHATSAPP_NUMBER = '201220610310';
 
 // ── Navigation links ─────────────────────────────────────────────────────────
 export const NAV_LINKS = [
-  { href: '#home',        label: 'الرئيسية',   labelEn: 'Home' },
-  { href: '#about',       label: 'من نحن',     labelEn: 'About Us' },
-  { href: '#curricula',   label: 'المناهج',    labelEn: 'Curricula' },
-  { href: '#pricing',     label: 'الأسعار',    labelEn: 'Pricing' },
-  { href: '#teachers',    label: 'معلمونا',    labelEn: 'Teachers' },
-  { href: '#contact',     label: 'تواصل معنا', labelEn: 'Contact' },
+  { href: '#home', label: 'الرئيسية', labelEn: 'Home' },
+  { href: '#about', label: 'من نحن', labelEn: 'About Us' },
+  { href: '#curricula', label: 'المناهج', labelEn: 'Curricula' },
+  { href: '#pricing', label: 'الأسعار', labelEn: 'Pricing' },
+  { href: '#teachers', label: 'معلمونا', labelEn: 'Teachers' },
+  { href: '#contact', label: 'تواصل معنا', labelEn: 'Contact' },
 ];
 
 // ── Curricula data ────────────────────────────────────────────────────────────
@@ -128,7 +128,7 @@ export const PLANS = [
     cta: 'ابدأ مجاناً',
     ctaEn: 'Start Free',
     highlight: false,
-    color: '#064e3b',
+    color: '#059669', // Vibrant Green
   },
   {
     id: 'kids',
@@ -217,11 +217,11 @@ export const PLANS = [
 export const TEACHERS = [
   {
     id: 1,
-    name: 'الشيخ محمد الأزهري',
-    nameEn: 'Sheikh Mohammed Al-Azhari',
+    name: 'الشيخ معاذ عاشور',
+    nameEn: 'Sheikh Moaz Ashour',
     country: 'مصر',
     countryEn: 'Egypt',
-    initials: 'م.أ',
+    initials: 'م.ع',
     color: '#064e3b',
     lang: ['عربي'],
     langEn: ['Arabic'],
@@ -232,26 +232,11 @@ export const TEACHERS = [
   },
   {
     id: 2,
-    name: 'الأستاذة فاطمة حسن',
-    nameEn: 'Ms. Fatima Hassan',
+    name: 'أستاذ محمد صلاح',
+    nameEn: 'Prof. Mohammed Salah',
     country: 'مصر',
     countryEn: 'Egypt',
-    initials: 'ف.ح',
-    color: '#b8941f',
-    lang: ['عربي', 'English'],
-    langEn: ['Arabic', 'English'],
-    teaches: ['حفظ للأطفال'],
-    teachesEn: ['Kids Memorization'],
-    rating: 5.0,
-    students: 95,
-  },
-  {
-    id: 3,
-    name: 'الشيخ أحمد عبد الله',
-    nameEn: 'Sheikh Ahmed Abdullah',
-    country: 'مصر',
-    countryEn: 'Egypt',
-    initials: 'أ.ع',
+    initials: 'م.ص',
     color: '#4338ca',
     lang: ['عربي'],
     langEn: ['Arabic'],
@@ -261,37 +246,7 @@ export const TEACHERS = [
     students: 60,
   },
   {
-    id: 4,
-    name: 'الأستاذة نور الإسلام',
-    nameEn: 'Ms. Nour Al-Islam',
-    country: 'مصر',
-    countryEn: 'Egypt',
-    initials: 'ن.إ',
-    color: '#9f1239',
-    lang: ['عربي', 'Français'],
-    langEn: ['Arabic', 'French'],
-    teaches: ['حفظ للكبار'],
-    teachesEn: ['Adult Memorization'],
-    rating: 4.8,
-    students: 88,
-  },
-  {
-    id: 5,
-    name: 'الشيخ يوسف الحسني',
-    nameEn: 'Sheikh Youssef Al-Hasani',
-    country: 'مصر',
-    countryEn: 'Egypt',
-    initials: 'ي.ح',
-    color: '#065f46',
-    lang: ['عربي', 'English'],
-    langEn: ['Arabic', 'English'],
-    teaches: ['تجويد وتلاوة'],
-    teachesEn: ['Tajweed & Recitation'],
-    rating: 5.0,
-    students: 74,
-  },
-  {
-    id: 6,
+    id: 3,
     name: 'الأستاذة مريم إبراهيم',
     nameEn: 'Ms. Maryam Ibrahim',
     country: 'مصر',

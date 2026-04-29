@@ -145,7 +145,7 @@ export default function AdminDashboard() {
         )}
 
         {/* Recent Activity */}
-        <Card style={{ gridColumn: 'span 2' }}>
+        <Card>
           <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 1rem' }}>
             🕐 {locale === 'ar' ? 'النشاط الأخير' : 'Recent Activity'}
           </h3>
@@ -160,14 +160,53 @@ export default function AdminDashboard() {
                 }}>
                   <span style={{ fontSize: '1.15rem' }}>{icons[act.type] || '📌'}</span>
                   <span style={{ flex: 1, fontSize: '0.85rem', color: 'var(--text-primary)' }}>
-                    {locale === 'ar' ? act.text : act.textEn}
-                  </span>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>
-                    {locale === 'ar' ? act.time : act.timeEn}
+                    {locale === 'ar' ? act.name : act.name} {locale === 'ar' ? 'سجل معنا' : 'joined us'}
                   </span>
                 </div>
               );
             })}
+          </div>
+        </Card>
+
+        {/* Registration Leads */}
+        <Card>
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 1.25rem' }}>
+            📩 {locale === 'ar' ? 'طلبات التسجيل الجديدة' : 'New Registration Leads'}
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {(data.recentLeads || []).map((lead) => (
+              <div key={lead._id} style={{
+                padding: '1rem', borderRadius: '0.75rem',
+                border: '1px solid var(--border-secondary)',
+                background: 'var(--bg-tertiary)',
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
+                  <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)' }}>{lead.name}</span>
+                  <Badge variant={lead.status === 'new' ? 'active' : 'inactive'}>
+                    {lead.status === 'new' ? (locale === 'ar' ? 'جديد' : 'New') : lead.status}
+                  </Badge>
+                </div>
+                <div style={{ fontSize: '0.8rem', color: C.g700, fontWeight: 600, marginBottom: '0.4rem' }}>
+                  📞 {lead.phone}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                  {lead.curriculum && <div>📚 {lead.curriculum}</div>}
+                  {lead.customPlan && (
+                    <div style={{ background: 'rgba(0,0,0,0.03)', padding: '0.4rem', borderRadius: '0.4rem', marginTop: '0.4rem' }}>
+                      ⚙️ {lead.customPlan.days} أيام/أسبوع - {lead.customPlan.mins} دقيقة
+                    </div>
+                  )}
+                </div>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', marginTop: '0.6rem', textAlign: 'left' }}>
+                  {new Date(lead.createdAt).toLocaleString(locale === 'ar' ? 'ar-EG' : 'en-US')}
+                </div>
+              </div>
+            ))}
+            {(!data.recentLeads || data.recentLeads.length === 0) && (
+              <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>
+                {locale === 'ar' ? 'لا توجد طلبات جديدة حالياً' : 'No new leads at the moment'}
+              </div>
+            )}
           </div>
         </Card>
       </div>

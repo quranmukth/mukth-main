@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { C } from './tokens';
 import { useT, useLocale } from '../../lib/i18n';
+import { leadsApi } from '../../lib/api';
 
 export default function RegisterModal({ isOpen, onClose }) {
   const t = useT();
@@ -32,17 +33,28 @@ export default function RegisterModal({ isOpen, onClose }) {
 
   const handleChange = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form.name.trim() || !form.phone.trim()) return;
     setStep('loading');
-    setTimeout(() => {
+    try {
+      await leadsApi.createLead({
+        name: form.name,
+        phone: form.phone,
+        age: form.age,
+        email: form.email,
+        curriculum: form.curriculum,
+        preferredTime: form.time
+      });
       setStep('success');
       setTimeout(() => {
         setStep('idle');
         onClose();
         setForm({ name:'', phone:'', age:'', email:'', curriculum:'', time:'' });
       }, 3200);
-    }, 900);
+    } catch (err) {
+      console.error('Lead submission failed:', err);
+      setStep('idle');
+    }
   };
 
   return (

@@ -6,6 +6,7 @@ import StatsBar from '../../components/StatsBar';
 import AboutSection from '../../components/AboutSection';
 import CurriculaSection from '../../components/CurriculaSection';
 import HowItWorks from '../../components/HowItWorks';
+import PlanAdjuster from '../../components/PlanAdjuster';
 import PricingSection from '../../components/PricingSection';
 import TeachersSection from '../../components/TeachersSection';
 import TestimonialsSection from '../../components/TestimonialsSection';
@@ -38,6 +39,7 @@ export default function LandingPage() {
         <CurriculaSection onOpenModal={openModal} />
         <HowItWorks />
         <PricingSection onOpenModal={openModal} />
+        <PlanAdjuster onOpenModal={openModal} />
         <TeachersSection />
         <TestimonialsSection />
         <ContactSection />

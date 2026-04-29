@@ -32,6 +32,7 @@ import statsRoutes        from './routes/stats.js';
 import notificationRoutes from './routes/notifications.js';
 import healthRoutes       from './routes/health.js';
 import sessionRoutes      from './routes/sessions.js';
+import leadsRoutes        from './routes/leads.js';
 
 // ── Allowed origins ───────────────────────────────────────────────────────────
 const getAllowedOrigins = () => {
@@ -147,6 +148,7 @@ const createApp = () => {
   app.use('/api/stats',         statsRoutes);
   app.use('/api/notifications', notificationRoutes);
   app.use('/api/sessions',      sessionRoutes);
+  app.use('/api/leads',         leadsRoutes);
 
   // ── 404 ───────────────────────────────────────────────────────────────────
   app.use((req, res) => {

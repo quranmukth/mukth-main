@@ -68,17 +68,17 @@ export default function PricingSection({ onOpenModal }) {
               background:'#fff',
               border: plan.highlight
                 ? `2px solid ${C.g600}`
-                : `1.5px solid ${C.borderL}`,
+                : `1.5px solid ${plan.color === C.g800 ? C.borderL : plan.color + '44'}`,
               borderRadius:'1.25rem',
               padding:'2rem 1.5rem',
               display:'flex', flexDirection:'column', gap:'1rem',
               position:'relative',
               boxShadow: plan.highlight
                 ? `0 8px 36px rgba(6,78,59,0.15)`
-                : 'none',
+                : plan.color !== C.g800 ? `0 8px 24px ${plan.color}15` : 'none',
               transition:'transform 0.25s ease, box-shadow 0.25s ease',
             }}
-            onMouseOver={e => { e.currentTarget.style.transform='translateY(-4px)'; e.currentTarget.style.boxShadow=`0 16px 48px rgba(6,78,59,0.13)`; }}
+            onMouseOver={e => { e.currentTarget.style.transform='translateY(-4px)'; e.currentTarget.style.boxShadow=`0 16px 48px ${plan.color}22`; }}
             onMouseOut={e  => { e.currentTarget.style.transform=''; e.currentTarget.style.boxShadow = plan.highlight ? `0 8px 36px rgba(6,78,59,0.15)` : 'none'; }}>
 
               {plan.badge && (
@@ -93,7 +93,7 @@ export default function PricingSection({ onOpenModal }) {
               )}
 
               <div style={{ display:'flex', justifyContent:'center', marginTop: plan.badge ? '0.5rem' : 0 }}>
-                <MukthMark size={72} color={C.g800} t={t} />
+                <MukthMark size={72} color={plan.color} t={t} />
               </div>
 
               <h3 style={{
@@ -117,7 +117,7 @@ export default function PricingSection({ onOpenModal }) {
                 ) : (
                   <span style={{
                     fontFamily: locale === 'ar' ? "'IBM Plex Sans Arabic', sans-serif" : "'Inter', sans-serif",
-                    fontSize:'1.75rem', fontWeight:800, color:C.g800,
+                    fontSize:'1.75rem', fontWeight:800, color:plan.color,
                   }}>{locale === 'ar' ? plan.price : plan.priceEn}</span>
                 )}
               </div>
@@ -130,11 +130,11 @@ export default function PricingSection({ onOpenModal }) {
 
               <button onClick={onOpenModal} style={{
                 width:'100%', padding:'0.72rem',
-                background: plan.highlight
-                  ? `linear-gradient(135deg, ${C.g800}, ${C.g600})`
+                background: plan.highlight || plan.id === 'trial'
+                  ? `linear-gradient(135deg, ${plan.color}, ${plan.color}dd)`
                   : 'transparent',
-                color: plan.highlight ? '#fff' : C.g800,
-                border: plan.highlight ? 'none' : `1.5px solid ${C.g800}`,
+                color: plan.highlight || plan.id === 'trial' ? '#fff' : plan.color,
+                border: plan.highlight || plan.id === 'trial' ? 'none' : `1.5px solid ${plan.color}`,
                 fontWeight:700, fontSize:'0.88rem',
                 borderRadius:'0.75rem', cursor:'pointer', fontFamily:'inherit',
                 transition:'all 0.18s ease',

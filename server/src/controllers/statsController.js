@@ -8,6 +8,7 @@ import Feedback from '../models/Feedback.js';
 import User from '../models/User.js';
 import Enrollment from '../models/Enrollment.js';
 import Halaqa from '../models/Halaqa.js';
+import Lead from '../models/Lead.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { DAILY_VERSES } from '../data/quranData.js';
 
@@ -144,7 +145,7 @@ export const getTeacherDashboard = async (req, res, next) => {
 
 export const getAdminDashboard = async (req, res, next) => {
   try {
-    const [userStats, halaqaCount, recentUsers, monthlyGrowth] = await Promise.all([
+    const [userStats, halaqaCount, recentUsers, monthlyGrowth, leadCount, recentLeads] = await Promise.all([
       // User role counts
       User.aggregate([
         { $group: { _id: '$role', count: { $sum: 1 } } },
@@ -169,6 +170,9 @@ export const getAdminDashboard = async (req, res, next) => {
         { $sort: { '_id.year': -1, '_id.month': -1 } },
         { $limit: 6 },
       ]),
+
+      Lead.countDocuments({ status: 'new' }),
+      Lead.find().sort({ createdAt: -1 }).limit(5).lean(),
     ]);
 
     const roleCounts = userStats.reduce((acc, r) => ({ ...acc, [r._id]: r.count }), {});
@@ -182,6 +186,8 @@ export const getAdminDashboard = async (req, res, next) => {
         totalHalaqat: halaqaCount,
         recentActivity: recentUsers,
         monthlyGrowth: monthlyGrowth.reverse(),
+        newLeadsCount: leadCount,
+        recentLeads: recentLeads,
       },
     });
   } catch (err) {

@@ -1,0 +1,113 @@
+name: Mukth Platform — CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '20.x'
+
+# ─────────────────────────────────────────────────────────────────────────────
+jobs:
+
+# ── Job 1: Lint & Validate ──────────────────────────────────────────────────
+  validate:
+    name: 🔍 Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install backend deps
+        run: npm ci
+        working-directory: server
+
+      - name: Check for .env committed by mistake
+        run: |
+          if git ls-files | grep -E "^server/\.env$"; then
+            echo "❌ server/.env was committed — remove it immediately!"
+            exit 1
+          fi
+
+# ── Job 2: Deploy Backend → Railway ────────────────────────────────────────
+  deploy-backend:
+    name: 🚂 Deploy Backend (Railway)
+    needs: validate
+    runs-on: ubuntu-latest
+    # Only deploy on push to main, not on PRs
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway
+        working-directory: server
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway up --service mukth-server --detach
+
+# ── Job 3: Deploy Frontend → Vercel ────────────────────────────────────────
+  deploy-frontend:
+    name: ▲ Deploy Frontend (Vercel)
+    needs: validate
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install frontend deps
+        run: npm ci
+
+      - name: Build Vite app
+        run: npm run build
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token:   ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id:  ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./
+          vercel-args: '--prod'
+
+# ── Job 4: Post-deploy Smoke Test ──────────────────────────────────────────
+  smoke-test:
+    name: 🧪 Smoke Test
+    needs: [deploy-backend]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install axios for smoke test
+        run: npm install axios
+
+      - name: Run smoke test
+        env:
+          API_BASE_URL: ${{ secrets.PRODUCTION_API_URL }}
+          TEST_EMAIL:   ${{ secrets.SMOKE_TEST_EMAIL }}
+          TEST_PASS:    ${{ secrets.SMOKE_TEST_PASSWORD }}
+        run: node server/src/scripts/smokeTest.js

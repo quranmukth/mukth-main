@@ -17,7 +17,15 @@ export default function HeroSection({ onOpenModal }) {
   ];
 
   const [isPlayingVerse, setIsPlayingVerse] = useState(false);
-  const [audio] = useState(() => new Audio('https://everydayayah.com/data/Alafasy_128kbps/017106.mp3'));
+  // استخدم الملف المحلي الموجود في /public/مكث.mpeg
+  const [audio] = useState(() => {
+    const a = new Audio('/مكث.mpeg');
+    a.onerror = () => {
+      // fallback to online source if local file not found
+      a.src = 'https://everydayayah.com/data/Alafasy_128kbps/017106.mp3';
+    };
+    return a;
+  });
 
   const toggleVerseAudio = () => {
     if (isPlayingVerse) {

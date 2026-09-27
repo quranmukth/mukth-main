@@ -283,8 +283,9 @@ body  {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Dashboard Responsive ── */
+/* ── Responsive Design ── */
 @media (max-width: 768px) {
+  /* Dashboard sidebar */
   .sidebar {
     transform: translateX(100%) !important;
     right: 0;
@@ -305,18 +306,109 @@ body  {
   .hamburger-btn {
     display: flex !important;
   }
-  
+
+  /* Layout */
   .container {
     padding: 0 1rem;
   }
-  
   .section-pad {
-    padding: 3.5rem 0;
+    padding: 3rem 0 2.75rem;
   }
-  
   .mobile-full-width {
     width: 100% !important;
     max-width: none !important;
+  }
+
+  /* Typography scaling */
+  .section-title {
+    font-size: clamp(1.45rem, 6vw, 1.9rem);
+    line-height: 1.4;
+  }
+  .section-sub {
+    font-size: 0.9rem;
+  }
+
+  /* Hero */
+  #home .container {
+    padding-top: 7rem;
+    padding-bottom: 3rem;
+  }
+
+  /* Auto-fit grids — force single column on very small screens */
+  [style*='minmax(min(100%, 200px)'],
+  [style*='minmax(min(100%, 220px)'],
+  [style*='minmax(min(100%, 260px)'],
+  [style*='minmax(min(100%, 280px)'] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Buttons & inputs — comfortable touch targets */
+  .btn-gold, .btn-outline {
+    padding: 0.85rem 1.5rem;
+    font-size: 0.92rem;
+    min-height: 48px;
+  }
+  input, select, textarea {
+    font-size: 16px !important; /* prevents iOS zoom */
+  }
+
+  /* Pricing cards */
+  #pricing [style*='gridTemplateColumns'] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Plan adjuster — stack columns */
+  #plan-adjuster [style*='repeat(auto-fit'] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Teachers grid — 2 cols on mobile */
+  #teachers [style*='repeat(auto-fill'] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Stats bar — 2+3 layout */
+  [style*='repeat(auto-fit, minmax(140px'] {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 0.5rem !important;
+  }
+
+  /* AzkarBar z-index safe */
+  #azkar-bar {
+    z-index: 49 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .section-pad {
+    padding: 2.5rem 0 2.25rem;
+  }
+  .container {
+    padding: 0 0.875rem;
+  }
+  .section-title {
+    font-size: clamp(1.3rem, 7vw, 1.65rem);
+  }
+
+  /* Hero stats 2x2 */
+  #home [style*='gridTemplateColumns:"repeat(2, 1fr)"'] {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.5rem !important;
+  }
+
+  /* Teachers 1 col on very small */
+  #teachers [style*='repeat(auto-fill'] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Stats bar 3 cols tight */
+  [style*='repeat(auto-fit, minmax(140px'] {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  /* Testimonials 1 col */
+  [style*='repeat(auto-fit, minmax(min(100%, 260px)'] {
+    grid-template-columns: 1fr !important;
   }
 }
 

@@ -23,14 +23,19 @@ export const useAuthStore = create((set, get) => ({
 
     try {
       const { data } = await apiClient.get('/auth/me');
-      const user = data.data;
-      set({ 
-        user, 
-        profile: { ...user, full_name: user.name }, 
-        role: user.role, 
-        loading: false,
-        initialized: true 
-      });
+      const user = data?.data;
+      if (user) {
+        set({ 
+          user, 
+          profile: { ...user, full_name: user.name || user.fullName }, 
+          role: user.role, 
+          loading: false,
+          initialized: true 
+        });
+      } else {
+        clearTokens();
+        set({ user: null, profile: null, role: null, loading: false, initialized: true });
+      }
     } catch (err) {
       console.error('Session restoration failed:', err);
       clearTokens();
@@ -41,14 +46,17 @@ export const useAuthStore = create((set, get) => ({
   /** Log in and update state instantly */
   login: async (email, password) => {
     const { data } = await apiClient.post('/auth/login', { email, password });
-    const { user, accessToken } = data.data;
+    const user = data?.data?.user;
+    const accessToken = data?.data?.accessToken;
     
-    storeTokens(accessToken);
-    set({ 
-      user, 
-      profile: { ...user, full_name: user.name }, 
-      role: user.role 
-    });
+    if (accessToken) storeTokens(accessToken);
+    if (user) {
+      set({ 
+        user, 
+        profile: { ...user, full_name: user.name || user.fullName }, 
+        role: user.role 
+      });
+    }
     return user;
   },
 
@@ -59,14 +67,17 @@ export const useAuthStore = create((set, get) => ({
       password, 
       ...metadata 
     });
-    const { user, accessToken } = data.data;
+    const user = data?.data?.user;
+    const accessToken = data?.data?.accessToken;
     
-    storeTokens(accessToken);
-    set({ 
-      user, 
-      profile: { ...user, full_name: user.name }, 
-      role: user.role 
-    });
+    if (accessToken) storeTokens(accessToken);
+    if (user) {
+      set({ 
+        user, 
+        profile: { ...user, full_name: user.name || user.fullName }, 
+        role: user.role 
+      });
+    }
     return user;
   },
 
@@ -87,11 +98,13 @@ export const useAuthStore = create((set, get) => ({
     if (!userId) return;
 
     const { data } = await apiClient.patch(`/users/${userId}`, updates);
-    const updatedUser = data.data;
+    const updatedUser = data?.data;
     
-    set((state) => ({ 
-      user: { ...state.user, ...updatedUser }, 
-      profile: { ...state.profile, ...updatedUser } 
-    }));
+    if (updatedUser) {
+      set((state) => ({ 
+        user: { ...state.user, ...updatedUser }, 
+        profile: { ...state.profile, ...updatedUser } 
+      }));
+    }
   },
 }));

@@ -1,29 +1,32 @@
 /**
  * @module apiClient
  * @description Axios-based API client with automatic token injection and transparent refresh.
- * Replaces the old Supabase client while maintaining data structure compatibility.
+ * Uses relative '/api' base URL on production to seamlessly communicate with Vercel serverless.
  */
 import axios from 'axios';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 // ── Axios instance ─────────────────────────────────────────────────────────────
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
-  withCredentials: true, // Sends the HttpOnly refresh-token cookie automatically
+  withCredentials: true, // Sends HttpOnly refresh-token cookie automatically
   headers: { 'Content-Type': 'application/json' },
 });
 
 // ── Request interceptor: attach access token ───────────────────────────────────
 
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('mukth_access_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-}, (error) => Promise.reject(error));
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('mukth_access_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 // ── Response interceptor: transparent token refresh ───────────────────────────
 
@@ -31,13 +34,15 @@ let isRefreshing = false;
 let failedQueue = [];
 
 const processQueue = (error, token = null) => {
-  failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
-  });
+  if (Array.isArray(failedQueue)) {
+    failedQueue.forEach((prom) => {
+      if (error) {
+        prom.reject(error);
+      } else {
+        prom.resolve(token);
+      }
+    });
+  }
   failedQueue = [];
 };
 
@@ -64,13 +69,16 @@ apiClient.interceptors.response.use(
 
       try {
         const { data } = await apiClient.post('/auth/refresh');
-        const newToken = data.data.accessToken;
+        const newToken = data?.data?.accessToken;
         
-        localStorage.setItem('mukth_access_token', newToken);
-        processQueue(null, newToken);
-        
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        return apiClient(originalRequest);
+        if (newToken) {
+          localStorage.setItem('mukth_access_token', newToken);
+          processQueue(null, newToken);
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return apiClient(originalRequest);
+        } else {
+          throw new Error('No new token returned');
+        }
       } catch (refreshError) {
         processQueue(refreshError, null);
         localStorage.removeItem('mukth_access_token');
@@ -95,7 +103,9 @@ apiClient.interceptors.response.use(
 
 /** Store tokens after successful auth */
 export const storeTokens = (accessToken) => {
-  localStorage.setItem('mukth_access_token', accessToken);
+  if (accessToken) {
+    localStorage.setItem('mukth_access_token', accessToken);
+  }
 };
 
 /** Clear tokens on logout */

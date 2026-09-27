@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { C } from './shared/tokens';
 import IslamicPattern from './shared/IslamicPattern';
 import { useT, useLocale } from '../lib/i18n';
@@ -6,26 +6,52 @@ import { useT, useLocale } from '../lib/i18n';
 export default function HeroSection({ onOpenModal }) {
   const t = useT();
   const locale = useLocale();
-  const [showVideo, setShowVideo] = useState(false);
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
 
   const STATS = [
-    { num: locale === 'ar' ? 'متميزون' : 'Elite',       label: t.heroStatStudents },
-    { num: locale === 'ar' ? 'مجازون' : 'Certified',   label: t.heroStatTeachers },
-    { num: locale === 'ar' ? 'متنوعة' : 'Diverse',     label: t.heroStatCurricula },
-    { num: locale === 'ar' ? 'معتمدون' : 'Accredited', label: t.heroStatAzhar },
+    { num: locale === 'ar' ? '+٥٠٠' : '+500',   label: locale === 'ar' ? 'طالب نشط' : 'Active Students' },
+    { num: locale === 'ar' ? '+٥٠' : '+50',     label: locale === 'ar' ? 'معلم مجاز أزهري' : 'Azhar Certified Teachers' },
+    { num: locale === 'ar' ? '٤.٩★' : '4.9★',  label: locale === 'ar' ? 'متوسط تقييم الطلاب' : 'Avg. Student Rating' },
+    { num: locale === 'ar' ? '+١٥' : '+15',     label: locale === 'ar' ? 'دولة نخدمها' : 'Countries Served' },
   ];
 
   const [isPlayingVerse, setIsPlayingVerse] = useState(false);
-  // استخدم الملف المحلي الموجود في /public/مكث.mpeg
   const [audio] = useState(() => {
     const a = new Audio('/مكث.mpeg');
     a.onerror = () => {
-      // fallback to online source if local file not found
       a.src = 'https://everydayayah.com/data/Alafasy_128kbps/017106.mp3';
     };
     return a;
   });
+
+  // Autoplay once per session on site visit
+  useEffect(() => {
+    const hasPlayed = sessionStorage.getItem('mukth_audio_played');
+    if (!hasPlayed) {
+      const playAudio = () => {
+        audio.play().then(() => {
+          setIsPlayingVerse(true);
+          sessionStorage.setItem('mukth_audio_played', 'true');
+        }).catch(() => {
+          // Autoplay was prevented by browser policy; wait for first user click
+          const handleFirstClick = () => {
+            audio.play().then(() => {
+              setIsPlayingVerse(true);
+              sessionStorage.setItem('mukth_audio_played', 'true');
+            }).catch(e => console.error('Audio play error:', e));
+            window.removeEventListener('pointerdown', handleFirstClick);
+            window.removeEventListener('click', handleFirstClick);
+          };
+          window.addEventListener('pointerdown', handleFirstClick, { once: true });
+          window.addEventListener('click', handleFirstClick, { once: true });
+        });
+      };
+
+      playAudio();
+
+      audio.onended = () => setIsPlayingVerse(false);
+    }
+  }, [audio]);
 
   const toggleVerseAudio = () => {
     if (isPlayingVerse) {
@@ -34,6 +60,7 @@ export default function HeroSection({ onOpenModal }) {
     } else {
       audio.play().then(() => {
         setIsPlayingVerse(true);
+        sessionStorage.setItem('mukth_audio_played', 'true');
       }).catch(err => console.error('Audio play error:', err));
 
       audio.onended = () => setIsPlayingVerse(false);
@@ -65,7 +92,7 @@ export default function HeroSection({ onOpenModal }) {
       {/* Content grid */}
       <div className="container" style={{
         position:'relative', zIndex:10,
-        padding: 'clamp(5rem, 15vh, 8rem) 1.5rem 4rem',
+        padding: 'clamp(6.5rem, 16vh, 9rem) 1.5rem 4rem',
         display:'grid',
         gridTemplateColumns:'repeat(auto-fit, minmax(min(100%, 460px), 1fr))',
         gap:'clamp(2rem, 5vw, 4rem)', 
@@ -78,13 +105,13 @@ export default function HeroSection({ onOpenModal }) {
             display:'inline-flex', alignItems:'center', gap:'0.6rem',
             padding:'0.42rem 1.1rem',
             background:`${C.gold}14`, border:`1px solid ${C.gold}38`,
-            borderRadius:'2rem', marginBottom:'1.5rem',
+            borderRadius:'2rem', marginBottom:'1.25rem',
           }}>
-            <span style={{ width:'5px', height:'5px', borderRadius:'50%', background:C.gold, flexShrink:0 }} />
+            <span style={{ width:'6px', height:'6px', borderRadius:'50%', background:C.gold, flexShrink:0 }} />
             <span style={{ color:C.gold, fontSize:'0.78rem', fontWeight:700, letterSpacing:'0.07em' }}>{t.inspiringVerse}</span>
           </div>
 
-          {/* Quranic verse with Audio Play Button */}
+          {/* Quranic verse with Premium Audio Badge Button */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -97,10 +124,12 @@ export default function HeroSection({ onOpenModal }) {
               onClick={toggleVerseAudio}
               title={isPlayingVerse ? (locale === 'ar' ? 'إيقاف التلاوة' : 'Pause Recitation') : (locale === 'ar' ? 'استمع للتلاوة' : 'Listen Recitation')}
               style={{
-                width: '46px',
-                height: '46px',
+                width: '48px',
+                height: '48px',
                 borderRadius: '50%',
-                background: isPlayingVerse ? C.gold : `linear-gradient(135deg, ${C.gold}33, ${C.gold}11)`,
+                background: isPlayingVerse 
+                  ? `linear-gradient(135deg, ${C.gold}, #997415)` 
+                  : `linear-gradient(135deg, rgba(212, 175, 55, 0.25), rgba(6, 44, 34, 0.6))`,
                 border: `1.5px solid ${C.gold}`,
                 color: isPlayingVerse ? C.g900 : C.gold,
                 display: 'flex',
@@ -109,23 +138,37 @@ export default function HeroSection({ onOpenModal }) {
                 fontSize: '1.1rem',
                 cursor: 'pointer',
                 flexShrink: 0,
-                boxShadow: isPlayingVerse ? `0 0 20px ${C.gold}66` : 'none',
-                transition: 'all 0.3s ease',
+                boxShadow: isPlayingVerse 
+                  ? `0 0 25px ${C.gold}88, inset 0 0 10px rgba(255,255,255,0.4)` 
+                  : '0 4px 12px rgba(0,0,0,0.3)',
+                transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                position: 'relative',
               }}
               onMouseOver={(e) => {
                 if (!isPlayingVerse) {
+                  e.currentTarget.style.transform = 'scale(1.08)';
                   e.currentTarget.style.background = C.gold;
                   e.currentTarget.style.color = C.g900;
                 }
               }}
               onMouseOut={(e) => {
                 if (!isPlayingVerse) {
-                  e.currentTarget.style.background = `linear-gradient(135deg, ${C.gold}33, ${C.gold}11)`;
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.background = `linear-gradient(135deg, rgba(212, 175, 55, 0.25), rgba(6, 44, 34, 0.6))`;
                   e.currentTarget.style.color = C.gold;
                 }
               }}
             >
-              {isPlayingVerse ? '⏸' : '▶'}
+              {isPlayingVerse ? (
+                /* Equalizer Wave Icon when playing */
+                <span style={{ display: 'flex', alignItems: 'center', gap: '3px', height: '16px' }}>
+                  <span style={{ width: '3px', height: '100%', background: C.g900, borderRadius: '2px', animation: 'bounce 0.8s ease-in-out infinite' }} />
+                  <span style={{ width: '3px', height: '60%', background: C.g900, borderRadius: '2px', animation: 'bounce 0.8s ease-in-out infinite 0.2s' }} />
+                  <span style={{ width: '3px', height: '80%', background: C.g900, borderRadius: '2px', animation: 'bounce 0.8s ease-in-out infinite 0.4s' }} />
+                </span>
+              ) : (
+                '🔊'
+              )}
             </button>
 
             <p style={{
@@ -198,7 +241,7 @@ export default function HeroSection({ onOpenModal }) {
                 }}>
                   {s.num}
                 </div>
-                <div style={{ fontSize:'0.77rem', color:'rgba(255,255,255,0.55)', marginTop:'0.2rem' }}>
+                <div style={{ fontSize:'0.77rem', color:'rgba(255,255,255,0.7)', marginTop:'0.2rem', fontWeight:600 }}>
                   {s.label}
                 </div>
               </div>
@@ -206,7 +249,7 @@ export default function HeroSection({ onOpenModal }) {
           </div>
         </div>
 
-        {/* ── Video column ── */}
+        {/* ── Photo Showcase Column (Pure image, no video button overlay) ── */}
         <div className="anim-fade-up d-200" style={{ position:'relative' }}>
           {/* Rating badge */}
           <div style={{
@@ -225,73 +268,55 @@ export default function HeroSection({ onOpenModal }) {
             </div>
           </div>
 
-          {/* Video Player */}
+          {/* Photo Showcase Container */}
           <div style={{
             borderRadius:'1.5rem', overflow:'hidden',
-            border:`1px solid ${C.gold}28`,
-            boxShadow:`0 32px 80px rgba(0,0,0,0.5), inset 0 0 0 1px ${C.gold}14`,
+            border:`1px solid ${C.gold}38`,
+            boxShadow:`0 32px 80px rgba(0,0,0,0.5), inset 0 0 0 1px ${C.gold}22`,
             background:`#000`,
             aspectRatio:'16 / 10',
-            display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
-            gap:'1.125rem', position:'relative', cursor:'pointer',
+            position:'relative',
             transition:'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
           }}
-          onClick={() => setShowVideo(true)}
-          onMouseOver={e => (e.currentTarget.style.transform='scale(1.02) translateY(-8px)')}
+          onMouseOver={e => (e.currentTarget.style.transform='scale(1.02) translateY(-6px)')}
           onMouseOut={e  => (e.currentTarget.style.transform='')}>
             
-            {/* Background Thumbnail */}
+            {/* Main Crisp Photo */}
             <img 
               src="/video-thumbnail.png" 
-              alt="Mukth Journey" 
+              alt="Mukth Interactive Live Session" 
               style={{ 
-                position:'absolute', inset:0, width:'100%', height:'100%', 
-                objectFit:'cover', opacity:0.6, transition:'opacity 0.3s' 
+                width:'100%', height:'100%', 
+                objectFit:'cover', display: 'block'
               }} 
-              onMouseOver={e => e.currentTarget.style.opacity = 0.8}
-              onMouseOut={e => e.currentTarget.style.opacity = 0.6}
             />
 
-            <IslamicPattern opacity={0.1} />
+            {/* Soft Overlay Gradient for text legibility */}
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: 'linear-gradient(to top, rgba(2,44,34,0.85) 0%, rgba(0,0,0,0.1) 60%)',
+              pointerEvents: 'none'
+            }} />
 
-            {/* Pulse ring + play button */}
-            <div style={{ position:'relative', zIndex:2 }}>
-              <div style={{
-                position:'absolute', inset:'-15px', borderRadius:'50%',
-                background:`${C.gold}30`,
-                animation:'pulseRing 2.2s cubic-bezier(0.4,0,0.6,1) infinite',
-              }} />
-              <div style={{
-                width:'80px', height:'80px', borderRadius:'50%',
-                background:`linear-gradient(135deg, ${C.gold}, ${C.goldD})`,
-                display:'flex', alignItems:'center', justifyContent:'center',
-                boxShadow:`0 0 40px ${C.gold}44`,
-                transition:'transform 0.2s',
-              }}
-              onMouseOver={e => (e.currentTarget.style.transform='scale(1.1)')}
-              onMouseOut={e  => (e.currentTarget.style.transform='')}>
-                <span style={{ fontSize:'1.6rem', color:C.g900, marginRight: locale === 'ar' ? '-4px' : '0', marginLeft: locale === 'ar' ? '0' : '4px' }}>
-                  {locale === 'ar' ? '▶' : '▶'}
-                </span>
-              </div>
-            </div>
+            <IslamicPattern opacity={0.08} />
 
-            <p style={{ 
-              color:'#fff', fontSize:'1rem', fontWeight:700, position:'relative', zIndex:2,
-              textShadow: '0 2px 10px rgba(0,0,0,0.5)',
-              background: 'rgba(0,0,0,0.3)', padding: '0.4rem 1rem', borderRadius: '2rem',
-              backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.1)'
-            }}>
-              {t.watchVideo}
-            </p>
+            {/* Live Interactive Session Pill */}
             <div style={{
               position:'absolute', bottom:'1.25rem', 
               right: locale === 'ar' ? '1.25rem' : 'auto', left: locale === 'ar' ? 'auto' : '1.25rem',
-              background:'rgba(212, 175, 55, 0.9)', backdropFilter:'blur(6px)',
-              borderRadius:'0.5rem',
-              padding:'0.35rem 0.75rem', color:C.g900, fontSize:'0.8rem', fontWeight:800, zIndex:2,
-              boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
-            }}>{locale === 'ar' ? '٢:٣٠ دقيقة' : '2:30 min'}</div>
+              background:'rgba(6, 44, 34, 0.9)', backdropFilter:'blur(10px)',
+              border: '1px solid rgba(212, 175, 55, 0.4)',
+              borderRadius:'0.75rem',
+              padding:'0.45rem 0.9rem', color:'#fff', fontSize:'0.85rem', fontWeight:700, zIndex:2,
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.4)'
+            }}>
+              <span style={{
+                width: '8px', height: '8px', borderRadius: '50%', background: '#10b981',
+                boxShadow: '0 0 10px #10b981', display: 'inline-block'
+              }} />
+              <span>{locale === 'ar' ? 'حلقة تعليمية مباشرة أونلاين' : 'Live Interactive Quran Session'}</span>
+            </div>
           </div>
 
           {/* Azhar badge */}
@@ -317,46 +342,6 @@ export default function HeroSection({ onOpenModal }) {
           </div>
         </div>
       </div>
-
-      {/* Video Overlay Modal */}
-      {showVideo && (
-        <div style={{
-          position:'fixed', inset:0, zIndex:2000,
-          background:'rgba(0,0,0,0.92)', backdropFilter:'blur(10px)',
-          display:'flex', alignItems:'center', justifyContent:'center',
-          padding:'1.5rem', animation: 'fadeIn 0.3s ease'
-        }} onClick={() => setShowVideo(false)}>
-          <button 
-            onClick={() => setShowVideo(false)}
-            style={{
-              position:'absolute', top:'1.5rem', right:'1.5rem',
-              background:'rgba(255,255,255,0.15)', border:'1px solid rgba(255,255,255,0.2)',
-              color:'#fff', fontSize:'1.5rem', cursor:'pointer',
-              width:'44px', height:'44px', borderRadius:'50%',
-              display:'flex', alignItems:'center', justifyContent:'center',
-              transition:'background 0.2s', zIndex:10
-            }}
-            onMouseOver={e => e.currentTarget.style.background='rgba(255,255,255,0.25)'}
-            onMouseOut={e => e.currentTarget.style.background='rgba(255,255,255,0.15)'}
-          >✕</button>
-          
-          <div style={{
-            width:'100%', maxWidth:'1100px',
-            borderRadius:'1.5rem', overflow:'hidden',
-            boxShadow:`0 0 120px ${C.gold}33, 0 40px 80px rgba(0,0,0,0.6)`,
-            border:`1px solid ${C.gold}33`,
-          }} onClick={e => e.stopPropagation()}>
-            <video 
-              controls 
-              autoPlay
-              loop
-              style={{ width:'100%', display:'block', maxHeight:'80vh', objectFit:'contain', background:'#000' }}
-            >
-              <source src="/demo-journey.webp" type="video/webp" />
-            </video>
-          </div>
-        </div>
-      )}
 
       {/* Fade to off-white */}
       <div style={{

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { C, NAV_LINKS } from './shared/tokens';
 import { useT, useLocale, useI18nStore } from '../lib/i18n';
 import { NavLink } from 'react-router-dom';
+import AzkarBar from './landing/AzkarBar';
 
 export default function Navbar({ onOpenModal }) {
   const t = useT();
@@ -22,10 +23,13 @@ export default function Navbar({ onOpenModal }) {
       position:'fixed', top:0, left:0, right:0, zIndex:900,
       direction: dir,
       transition:'background 0.35s ease, box-shadow 0.35s ease, height 0.3s ease',
-      background: scrolled ? 'rgba(2,44,34,0.95)' : 'transparent',
-      backdropFilter: scrolled ? 'blur(20px) saturate(1.5)' : 'none',
+      background: scrolled ? 'rgba(2,44,34,0.95)' : 'rgba(2, 44, 34, 0.4)',
+      backdropFilter: 'blur(20px) saturate(1.5)',
       boxShadow: scrolled ? `0 1px 0 ${C.gold}1a, 0 4px 32px rgba(0,0,0,0.25)` : 'none',
     }}>
+      {/* Top Dhikr Bar */}
+      <AzkarBar />
+
       {/* Main bar */}
       <div className="container" style={{
         display:'flex', alignItems:'center', justifyContent:'space-between',

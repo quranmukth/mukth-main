@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useLocale, useT } from '../../lib/i18n';
 import Navbar from '../../components/Navbar';
-import AzkarBar from '../../components/landing/AzkarBar';
 import HeroSection from '../../components/HeroSection';
 import DailyVerseCard from '../../components/landing/DailyVerseCard';
 import StatsBar from '../../components/StatsBar';
@@ -34,7 +33,6 @@ export default function LandingPage() {
       transition: 'background-color 0.3s ease, color 0.3s ease'
     }}>
       <Navbar onOpenModal={openModal} />
-      <AzkarBar />
       <main>
         <HeroSection onOpenModal={openModal} />
         <DailyVerseCard />

@@ -9,7 +9,7 @@ import { C } from '../components/shared/tokens';
 import IslamicPattern from '../components/shared/IslamicPattern';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
-import apiClient from '../lib/apiClient';
+
 
 const ROLES = [
   { value: 'student', icon: '📖' },
@@ -32,7 +32,7 @@ export default function RegisterPage() {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [serverDown, setServerDown] = useState(false);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -40,22 +40,7 @@ export default function RegisterPage() {
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
-  // ── Health Check — Vital for Egypt users with flaky DNS ─────────────────────
-  useEffect(() => {
-    const checkHealth = async () => {
-      try {
-        await apiClient.get('/health');
-        setServerDown(false);
-      } catch (err) {
-        setServerDown(true);
-        notify.error(
-          locale === 'ar' ? 'الخادم غير متصل' : 'Server Offline',
-          locale === 'ar' ? 'يرجى التأكد من تشغيل الخادم وتعديل DNS إلى 8.8.8.8' : 'Ensure backend is running and DNS is set to 8.8.8.8'
-        );
-      }
-    };
-    checkHealth();
-  }, [locale, notify]);
+
 
   // Auto-redirect when user state is updated
   useEffect(() => {
@@ -70,10 +55,6 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (serverDown) {
-      notify.error(locale === 'ar' ? 'لا يمكن التسجيل' : 'Cannot Register', locale === 'ar' ? 'الخادم غير متاح حالياً.' : 'Server is unreachable.');
-      return;
-    }
 
     const v = validate(registerSchema, form);
     if (!v.success) { setErrors(v.errors); return; }
@@ -111,16 +92,6 @@ export default function RegisterPage() {
       <IslamicPattern opacity={0.05} />
 
       <div style={{ margin: 'auto', width: '100%', maxWidth: '480px', position: 'relative', zIndex: 10 }}>
-        {/* Connection Warning */}
-        {serverDown && (
-          <div style={{
-            background: '#ff444420', border: '1px solid #ff4444', color: '#ff4444',
-            padding: '1rem', borderRadius: '1rem', marginBottom: '1rem', textAlign: 'center',
-            fontSize: '0.9rem', fontWeight: 600,
-          }}>
-            ⚠️ {locale === 'ar' ? 'الخادم لا يستجيب. تحقق من اتصالك و DNS.' : 'Server unreachable. Check your DNS (8.8.8.8).'}
-          </div>
-        )}
 
         <div style={{
           background: 'var(--bg-card)', borderRadius: '1.5rem',
@@ -157,7 +128,7 @@ export default function RegisterPage() {
             <Input label={t.password} name="password" type="password" value={form.password} onChange={handleChange} error={errors.password} required icon="🔒" />
             <Input label={t.confirmPassword} name="confirmPassword" type="password" value={form.confirmPassword} onChange={handleChange} error={errors.confirmPassword} required icon="🔒" />
             
-            <Button type="submit" variant="gold" fullWidth loading={loading} disabled={serverDown}>
+            <Button type="submit" variant="gold" fullWidth loading={loading}>
               {t.register}
             </Button>
           </form>

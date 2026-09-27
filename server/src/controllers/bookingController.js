@@ -77,17 +77,36 @@ ${preferredTeacher ? `🎓 المعلم المفضل: ${preferredTeacher}` : ''}
 };
 
 /**
- * @desc Get all bookings (for Admin)
+ * @desc Get bookings (role-aware)
  * @route GET /api/bookings
- * @access Admin
+ * @access Authenticated (admin=all, teacher=their students, student=by phone)
  */
 export const getBookings = async (req, res, next) => {
   try {
-    const { status, phone, teacherId } = req.query;
     const filter = {};
-    if (status)    filter.status    = status;
-    if (phone)     filter.phone     = phone;
-    if (teacherId) filter.teacherId = teacherId;
+    const role = req.user?.role;
+
+    if (role === 'admin') {
+      // Admin can filter by any param
+      const { status, phone, teacherId } = req.query;
+      if (status)    filter.status    = status;
+      if (phone)     filter.phone     = phone;
+      if (teacherId) filter.teacherId = teacherId;
+    } else if (role === 'teacher') {
+      // Teacher sees only bookings assigned to them
+      filter.teacherId = req.user._id;
+      // Allow additional status filter
+      if (req.query.status) filter.status = req.query.status;
+    } else {
+      // Student sees their own bookings by phone or passed studentId
+      const phone = req.query.phone || req.user?.phone;
+      if (phone) {
+        filter.phone = phone;
+      } else {
+        // No phone available — return empty
+        return res.json({ success: true, count: 0, bookings: [] });
+      }
+    }
 
     const bookings = await Booking.find(filter)
       .populate('teacherId', 'name email meetLink')
@@ -102,6 +121,7 @@ export const getBookings = async (req, res, next) => {
     next(err);
   }
 };
+
 
 /**
  * @desc Update booking status

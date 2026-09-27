@@ -9,8 +9,8 @@ export default function HeroSection({ onOpenModal }) {
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
 
   const STATS = [
-    { num: locale === 'ar' ? '+٥٠٠' : '+500',   label: locale === 'ar' ? 'طالب نشط' : 'Active Students' },
-    { num: locale === 'ar' ? '+٥٠' : '+50',     label: locale === 'ar' ? 'معلم مجاز أزهري' : 'Azhar Certified Teachers' },
+    { num: locale === 'ar' ? '٤٥' : '45',       label: locale === 'ar' ? 'طالب نشط' : 'Active Students' },
+    { num: locale === 'ar' ? '٨' : '8',         label: locale === 'ar' ? 'معلم مجاز أزهري' : 'Azhar Certified Teachers' },
     { num: locale === 'ar' ? '٤.٩★' : '4.9★',  label: locale === 'ar' ? 'متوسط تقييم الطلاب' : 'Avg. Student Rating' },
     { num: locale === 'ar' ? '+١٥' : '+15',     label: locale === 'ar' ? 'دولة نخدمها' : 'Countries Served' },
   ];

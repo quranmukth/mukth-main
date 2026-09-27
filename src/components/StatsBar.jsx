@@ -7,8 +7,8 @@ export default function StatsBar() {
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
 
   const ITEMS = [
-    { icon:'👥', num: locale === 'ar' ? '+٥٠٠' : '+500',       label: locale === 'ar' ? 'طالب نشط' : 'Active Students' },
-    { icon:'🎓', num: locale === 'ar' ? '+٥٠' : '+50',         label: locale === 'ar' ? 'معلم مجاز أزهري' : 'Azhar Certified Teachers' },
+    { icon:'👥', num: locale === 'ar' ? '٤٥' : '45',       label: locale === 'ar' ? 'طالب نشط' : 'Active Students' },
+    { icon:'🎓', num: locale === 'ar' ? '٨' : '8',         label: locale === 'ar' ? 'معلم مجاز أزهري' : 'Azhar Certified Teachers' },
     { icon:'⭐', num: locale === 'ar' ? '٤.٩ / ٥' : '4.9 / 5', label: locale === 'ar' ? 'متوسط تقييم الطلاب' : 'Avg. Student Rating' },
     { icon:'🌍', num: locale === 'ar' ? '+١٥' : '+15',         label: locale === 'ar' ? 'دولة حول العالم' : 'Countries Served' },
     { icon:'📜', num: locale === 'ar' ? '١٠٠٪' : '100%',       label: locale === 'ar' ? 'منهجية أزهرية معتمدة' : 'Azhar Approved Methodology' },

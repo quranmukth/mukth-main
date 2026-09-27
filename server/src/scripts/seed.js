@@ -65,6 +65,41 @@ const SEED_TEACHERS = [
     password:  'Teacher@1234',
     role:      'teacher',
   },
+  {
+    name:      'الشيخ محمود الحصري',
+    nameEn:    'Sheikh Mahmoud Al-Hosary',
+    email:     'hosary@mukth.com',
+    password:  'Teacher@1234',
+    role:      'teacher',
+  },
+  {
+    name:      'الأستاذة مريم إبراهيم',
+    nameEn:    'Ms. Maryam Ibrahim',
+    email:     'maryam@mukth.com',
+    password:  'Teacher@1234',
+    role:      'teacher',
+  },
+  {
+    name:      'الشيخ طارق عبد القادر',
+    nameEn:    'Sheikh Tarek Abdelkader',
+    email:     'tarek@mukth.com',
+    password:  'Teacher@1234',
+    role:      'teacher',
+  },
+  {
+    name:      'الشيخ عبدالرحمن حسن',
+    nameEn:    'Sheikh Abdulrahman Hassan',
+    email:     'abdulrahman@mukth.com',
+    password:  'Teacher@1234',
+    role:      'teacher',
+  },
+  {
+    name:      'الأستاذة فاطمة الزهراء',
+    nameEn:    'Ms. Fatima Al-Zahra',
+    email:     'fatima@mukth.com',
+    password:  'Teacher@1234',
+    role:      'teacher',
+  },
 ];
 
 // ── Main ─────────────────────────────────────────────────────────────────────

@@ -11,23 +11,27 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 dotenv.config();
 
 import http from 'http';
-import createApp from './app.js';
-import connectDB from './config/database.js';
-import logger from './config/logger.js';
+import createApp    from './app.js';
+import connectDB    from './config/database.js';
+import ensureAdmin  from './scripts/ensureAdmin.js';
+import logger       from './config/logger.js';
 
-const PORT = process.env.PORT || 5000;
+const PORT     = process.env.PORT     || 5000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
 const bootstrap = async () => {
   logger.info(`🏗️  Starting Mukth Server in ${NODE_ENV} mode...`);
 
-  // 1. Attempt MongoDB connection
-  connectDB();
+  // 1. Connect to MongoDB
+  await connectDB();
 
-  // 2. Create Express app
+  // 2. Auto-create first admin if DB has none (idempotent, non-fatal)
+  await ensureAdmin();
+
+  // 3. Create Express app
   const app = createApp();
 
-  // 3. Listen
+  // 4. Listen
   app.listen(PORT, '0.0.0.0', () => {
     logger.info(`🚀 Mukth server running on port ${PORT} [${NODE_ENV}]`);
   });
@@ -40,3 +44,4 @@ const bootstrap = async () => {
 };
 
 bootstrap();
+

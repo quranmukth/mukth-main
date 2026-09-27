@@ -17,8 +17,11 @@ const getApp = async () => {
       const createApp = mod.default;
 
       // Ensure DB connection is established (cached on global)
-      const { default: connectDB } = await import('../server/src/config/database.js');
+      const { default: connectDB }    = await import('../server/src/config/database.js');
+      const { default: ensureAdmin }  = await import('../server/src/scripts/ensureAdmin.js');
+
       await connectDB();
+      await ensureAdmin(); // Creates first admin if none exists (idempotent)
 
       return createApp();
     });

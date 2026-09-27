@@ -1,7 +1,7 @@
 /**
  * @module api
- * @description Drop-in replacement for supabaseApi.js using the new REST backend.
- * Data shapes are intentionally kept identical so Zustand stores require zero changes.
+ * @description Safe REST API helper wrappers around apiClient.
+ * Incorporates safe optional chaining for resilient data extraction.
  */
 import apiClient from './apiClient.js';
 import { DAILY_VERSES } from '../data/quranData.js';
@@ -11,39 +11,38 @@ import { DAILY_VERSES } from '../data/quranData.js';
 export const studentApi = {
   getDashboard: async (studentId) => {
     const { data } = await apiClient.get(`/stats/student/${studentId}`);
-    return data.data; // { student, dailyVerse, stats, nextSession, enrollments }
+    return data?.data || {}; // { student, dailyVerse, stats, nextSession, enrollments }
   },
 
   getRecordings: async (studentId) => {
     const { data } = await apiClient.get('/recordings', { params: { studentId } });
-    return data.data;
+    return data?.data || [];
   },
 
   getBadges: async (studentId) => {
     const { data } = await apiClient.get(`/users/${studentId}`);
-    // Return badges in the shape the store expects: [{ badge_id }]
-    return (data.data.badges || []).map((b) => ({ badge_id: b.badgeId }));
+    return (data?.data?.badges || []).map((b) => ({ badge_id: b.badgeId }));
   },
 
   submitRecording: async (recordingData) => {
     const { data } = await apiClient.post('/recordings', recordingData);
-    return data.data;
+    return data?.data;
   },
 
   getUploadUrl: async (contentType = 'audio/webm') => {
     const { data } = await apiClient.get('/recordings/upload-url', { params: { contentType } });
-    return data.data; // { uploadUrl, s3Key }
+    return data?.data || {}; // { uploadUrl, s3Key }
   },
 
   getPlaybackUrl: async (recordingId) => {
     const { data } = await apiClient.get(`/recordings/${recordingId}/url`);
-    return data.data.url;
+    return data?.data?.url || '';
   },
 
   getProgress: async (studentId) => {
     const { data } = await apiClient.get(`/stats/student/${studentId}`);
-    const stats = data.data.stats;
-    const totalJuz = data.data.student?.totalJuzMemorized || 0;
+    const stats = data?.data?.stats || {};
+    const totalJuz = data?.data?.student?.totalJuzMemorized || 0;
     const juzProgress = Array.from({ length: 30 }, (_, i) => {
       const juzNum = 30 - i;
       let status = 'locked', pct = 0;
@@ -51,7 +50,7 @@ export const studentApi = {
       else if (juzNum === totalJuz + 1) { status = 'inProgress'; pct = 25; }
       return { juz: juzNum, pct, status };
     });
-    return { totalPages: stats.pagesMemorized, juzProgress };
+    return { totalPages: stats.pagesMemorized || 0, juzProgress };
   },
 };
 
@@ -61,25 +60,25 @@ export const teacherApi = {
   getDashboard: async (teacherId) => {
     const { data } = await apiClient.get(`/stats/teacher/${teacherId}`);
     return {
-      stats: data.data.stats,
-      pendingRecordings: data.data.pendingRecordings,
-      todaySessions: data.data.halaqat,
+      stats: data?.data?.stats || {},
+      pendingRecordings: data?.data?.pendingRecordings || [],
+      todaySessions: data?.data?.halaqat || [],
     };
   },
 
   getStudents: async (teacherId) => {
     const { data } = await apiClient.get('/users', { params: { role: 'student' } });
-    return data.data;
+    return data?.data || [];
   },
 
   getSchedule: async (teacherId) => {
     const { data } = await apiClient.get('/halaqat');
-    return data.data;
+    return data?.data || [];
   },
 
   submitReview: async (recordingId, feedback) => {
     const { data } = await apiClient.post('/feedback', { recordingId, ...feedback });
-    return data.data;
+    return data?.data;
   },
 };
 
@@ -88,7 +87,7 @@ export const teacherApi = {
 export const adminApi = {
   getUsers: async (filters = {}) => {
     const { data } = await apiClient.get('/users', { params: filters });
-    return data.data;
+    return data?.data || [];
   },
 
   createUser: async (user) => {
@@ -99,37 +98,37 @@ export const adminApi = {
       phone: user.phone,
       role: user.role,
     });
-    return data.data;
+    return data?.data;
   },
 
   getDashboard: async () => {
     const { data } = await apiClient.get('/stats/admin');
-    return data.data;
+    return data?.data || {};
   },
 
   updateUserRole: async (userId, role) => {
     const { data } = await apiClient.patch(`/users/${userId}`, { role });
-    return data.data;
+    return data?.data;
   },
 
   deleteUser: async (userId) => {
     const { data } = await apiClient.delete(`/users/${userId}`);
-    return data.data;
+    return data?.data;
   },
 
   getHalaqat: async () => {
     const { data } = await apiClient.get('/halaqat');
-    return data.data;
+    return data?.data || [];
   },
 
   createHalqa: async (halqa) => {
     const { data } = await apiClient.post('/halaqat', halqa);
-    return data.data;
+    return data?.data;
   },
 
   deleteHalqa: async (id) => {
     const { data } = await apiClient.delete(`/halaqat/${id}`);
-    return data.data;
+    return data?.data;
   },
 };
 
@@ -138,17 +137,17 @@ export const adminApi = {
 export const leadsApi = {
   createLead: async (leadData) => {
     const { data } = await apiClient.post('/leads', leadData);
-    return data.data;
+    return data?.data;
   },
 
   getLeads: async () => {
     const { data } = await apiClient.get('/leads');
-    return data.data;
+    return data?.data || [];
   },
 
   updateLeadStatus: async (id, status) => {
     const { data } = await apiClient.patch(`/leads/${id}`, { status });
-    return data.data;
+    return data?.data;
   },
 };
 
@@ -157,16 +156,16 @@ export const leadsApi = {
 export const bookingsApi = {
   createBooking: async (bookingData) => {
     const { data } = await apiClient.post('/bookings', bookingData);
-    return data; // { success, message, booking, waLink }
+    return data || {}; // { success, message, booking, waLink }
   },
 
   getBookings: async (params = {}) => {
     const { data } = await apiClient.get('/bookings', { params });
-    return data; // { success, count, bookings }
+    return data || { bookings: [] }; // { success, count, bookings }
   },
 
   updateBookingStatus: async (id, status) => {
     const { data } = await apiClient.patch(`/bookings/${id}/status`, { status });
-    return data;
+    return data || {};
   },
 };

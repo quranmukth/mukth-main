@@ -40,8 +40,8 @@ export default function Footer() {
   ];
 
   const SOCIAL = [
-    { name:'Facebook',  icon:'f', color:'#1877F2', href:'#' },
-    { name:'Instagram', icon:'◉', color:'#E4405F', href:'#' },
+    { name:'Facebook',  icon:'f', color:'#1877F2', href:'https://www.facebook.com/share/19eKpFLYy5/' },
+    { name:'Instagram', icon:'◉', color:'#E4405F', href:'https://www.instagram.com/quranmukth114?stkn=MTkzNXU0N3lyMmlkYQ==' },
     { name:'YouTube',   icon:'▶', color:'#FF0000', href:'#' },
     { name:'Telegram',  icon:'✈', color:'#0088CC', href:'#' },
   ];

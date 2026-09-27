@@ -22,9 +22,9 @@ export default function ContactSection() {
   };
 
   const SOCIAL = [
-    { name: locale === 'ar' ? 'واتساب' : 'WhatsApp', icon: '💬', color: '#25D366', href: `https://wa.me/${201220610310}` },
-    { name: locale === 'ar' ? 'فيسبوك' : 'Facebook', icon: '📘', color: '#1877F2', href: 'https://www.facebook.com/profile.php?id=61577653913988' },
-    { name: locale === 'ar' ? 'إنستغرام' : 'Instagram', icon: '📸', color: '#E1306C', href: 'https://instagram.com/mukth114' },
+    { name: locale === 'ar' ? 'واتساب' : 'WhatsApp', icon: '💬', color: '#25D366', href: `https://wa.me/${WHATSAPP_NUMBER}` },
+    { name: locale === 'ar' ? 'فيسبوك' : 'Facebook', icon: '📘', color: '#1877F2', href: 'https://www.facebook.com/share/19eKpFLYy5/' },
+    { name: locale === 'ar' ? 'إنستغرام' : 'Instagram', icon: '📸', color: '#E1306C', href: 'https://www.instagram.com/quranmukth114?stkn=MTkzNXU0N3lyMmlkYQ==' },
     { name: locale === 'ar' ? 'تليجرام' : 'Telegram', icon: '✈️', color: '#229ED9', href: 'https://t.me/' },
   ];
 

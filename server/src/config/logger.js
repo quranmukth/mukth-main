@@ -1,10 +1,13 @@
 /**
  * @module logger
- * @description Winston logger — pretty console in dev, JSON in prod.
+ * @description Winston logger — Console-only logging (Serverless & Production safe).
+ * Prevents file-system writes (mkdir logs) that crash read-only serverless runtimes (Vercel).
  */
 import winston from 'winston';
 
 const { combine, timestamp, colorize, printf, json, errors } = winston.format;
+
+const isProduction = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
 
 const devFormat = combine(
   colorize({ all: true }),
@@ -20,16 +23,12 @@ const devFormat = combine(
 const prodFormat = combine(timestamp(), errors({ stack: true }), json());
 
 const logger = winston.createLogger({
-  level: process.env.NODE_ENV === 'production' ? 'warn' : 'debug',
-  format: process.env.NODE_ENV === 'production' ? prodFormat : devFormat,
+  level: isProduction ? 'info' : 'debug',
+  format: isProduction ? prodFormat : devFormat,
   transports: [
-    new winston.transports.Console(),
-    ...(process.env.NODE_ENV === 'production'
-      ? [
-          new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
-          new winston.transports.File({ filename: 'logs/combined.log' }),
-        ]
-      : []),
+    new winston.transports.Console({
+      handleExceptions: true,
+    }),
   ],
 });
 
